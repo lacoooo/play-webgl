@@ -9,11 +9,11 @@ let cactiImg;
 function preload(){
   // load the shader
   uniformsShader = loadShader('uniform.vert', 'uniform.frag');
-  cactiImg = loadImage('0a7bc1c0e8cca5c75a068e7197ee8a27.jpg');
+  cactiImg = loadImage('efc491f203d865a0b01298685a75f35b.jpg');
 }
 
 function setup() {
-  size = 500
+  size = 800
   // shaders require WEBGL mode to work
   createCanvas(size, size, WEBGL);
   noStroke();

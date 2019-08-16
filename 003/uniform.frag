@@ -28,7 +28,7 @@ void main() {
 
   float sineWave = sin(noise(uv) * 7.0);
 
-  vec2 distort = vec2(noise(uv * 2.0 + time / 2.0), noise(uv * 2.0 + time / 2.0 + 100.0));
+  vec2 distort = vec2(noise(uv * 2.0 + time / 2.0), noise(uv * 2.0 + time / 2.0 + 100.0)) / 2.0;
 
   vec4 tex = texture2D(cactiTex, uv + distort);
 
