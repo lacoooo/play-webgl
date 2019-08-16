@@ -2,7 +2,7 @@ precision mediump float;
 
 varying vec2 vTexCoord;
 
-uniform float time;
+uniform float mouseX;
 
 uniform sampler2D picture;
 
@@ -18,19 +18,23 @@ float noise(vec2 p){
 	float res = mix(
 		mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
 		mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
-	return res*res;
+	return res*res; 
 }
 
 void main() {
 
   vec2 uv = vTexCoord;
   uv.y = 1.0 - uv.y;
+  vec4 tex = texture2D(picture, uv);
 
-  float sineWave = sin(noise(uv) * 7.0);
+  tex = vec4(vec3(ceil((tex.r + tex.g + tex.b) * mouseX) / 3.0 / mouseX), 1.0);
 
-  vec2 distort = vec2(noise(uv * 2.0 + time / 2.0), noise(uv * 2.0 + time / 2.0 + 100.0)) / 2.0;
-
-  vec4 tex = texture2D(picture, uv + distort);
+  if (fract(sin(uv.x * 0.5 + tex.r * 3.0) * 500.0) > tex.r) {
+	tex = vec4(vec3(0.1), 1.0);
+  } else {
+	tex = vec4(vec3(0.8), 1.0);
+  }
 
   gl_FragColor = tex;
 }
+

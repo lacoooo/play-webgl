@@ -26,9 +26,9 @@ function draw() {
 
   uniformsShader.setUniform('time', frameCount * 0.01);
   // setUniform can also send an image to a shader
-  // 'cactiTex' is the name of the variable in our shader
+  // 'picture' is the name of the variable in our shader
   // cactiImg, is a normal p5 image object
-  uniformsShader.setUniform('cactiTex', cactiImg);
+  uniformsShader.setUniform('picture', cactiImg);
 
   // rect gives us some geometry on the screen
   rect(0,0,width, height);

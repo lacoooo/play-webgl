@@ -9,13 +9,13 @@ let cactiImg;
 function preload(){
   // load the shader
   uniformsShader = loadShader('uniform.vert', 'uniform.frag');
-  cactiImg = loadImage('0a7bc1c0e8cca5c75a068e7197ee8a27.jpg');
+  cactiImg = loadImage('a4b1c53deb464e3d45f7bf6a682aafcd.jpg');
 }
 
 function setup() {
-  size = 500
+  size = 800
   // shaders require WEBGL mode to work
-  createCanvas(size, size, WEBGL);
+  createCanvas(560, 700, WEBGL);
   noStroke();
   console.log(cactiImg)
 }
@@ -24,7 +24,9 @@ function draw() {
   // shader() sets the active shader with our shader
   shader(uniformsShader);
 
-  uniformsShader.setUniform('time', frameCount * 0.01);
+  // uniformsShader.setUniform('time', frameCount * 0.01);
+
+  uniformsShader.setUniform('mouseX', mouseX * 0.01);
   // setUniform can also send an image to a shader
   // 'picture' is the name of the variable in our shader
   // cactiImg, is a normal p5 image object
@@ -35,5 +37,5 @@ function draw() {
 }
 
 function windowResized(){
-  resizeCanvas(size, size);
+  resizeCanvas(560, 700);
 }

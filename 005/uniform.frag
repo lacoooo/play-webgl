@@ -2,7 +2,7 @@ precision mediump float;
 
 varying vec2 vTexCoord;
 
-uniform float time;
+uniform float mouseX;
 
 uniform sampler2D picture;
 
@@ -25,12 +25,11 @@ void main() {
 
   vec2 uv = vTexCoord;
   uv.y = 1.0 - uv.y;
+  vec4 tex = texture2D(picture, uv);
 
-  float sineWave = sin(noise(uv) * 7.0);
+  float value = mouseX;
 
-  vec2 distort = vec2(noise(uv * 2.0 + time / 2.0), noise(uv * 2.0 + time / 2.0 + 100.0)) / 2.0;
-
-  vec4 tex = texture2D(picture, uv + distort);
+  tex.r = tex.g = tex.b = floor((tex.r + tex.g + tex.b) * value) / (3.0 * value);
 
   gl_FragColor = tex;
 }

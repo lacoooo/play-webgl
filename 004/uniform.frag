@@ -4,7 +4,7 @@ varying vec2 vTexCoord;
 
 uniform float time;
 
-uniform sampler2D cactiTex;
+uniform sampler2D picture;
 
 float rand(vec2 n) { 
 	// if (n.x < 0.5) {
@@ -34,8 +34,8 @@ void main() {
 //   uv.y = uv.y * cos(noise(uv + time) * 7.0);
   uv.x = uv.x * 0.95 + uv.x * rand(uv) * 0.05;
 
-  vec4 texa = texture2D(cactiTex, uv * 0.95 + uv * rand(uv) * 0.05);
-  vec4 texb = texture2D(cactiTex, uv);
+  vec4 texa = texture2D(picture, uv * 0.95 + uv * rand(uv) * 0.05);
+  vec4 texb = texture2D(picture, uv);
 
   texa.r = texa.r * (1.0 - uv.x) + texb.r * 0.5 * uv.x * rand(uv);
   texa.g = texa.g * (1.0 - uv.x) + texb.g * 0.5 * uv.x * rand(uv + 100.0);

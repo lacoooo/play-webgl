@@ -4,7 +4,7 @@ varying vec2 vTexCoord;
 
 uniform float time;
 
-uniform sampler2D cactiTex;
+uniform sampler2D picture;
 
 float rand(vec2 n) { 
 	return fract(sin( dot(n, vec2(12.9898, 4.1414)) ) * 43758.5453);
@@ -30,7 +30,7 @@ void main() {
 
   vec2 distort = vec2(noise(uv * (4.2 - time)) * time * 1.0 + sineWave / 1.4, noise(uv * (4.0 - time)) * time / 2.0);
 
-  vec4 tex = texture2D(cactiTex, uv + distort);
+  vec4 tex = texture2D(picture, uv + distort);
 
   gl_FragColor = tex;
 }
