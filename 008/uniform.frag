@@ -3,6 +3,7 @@ precision mediump float;
 varying vec2 vTexCoord;
 
 uniform float mouseX;
+uniform float mouseY;
 
 uniform sampler2D picture;
 
@@ -27,15 +28,15 @@ void main() {
   uv.y = 1.0 - uv.y;
   vec4 tex = texture2D(picture, uv);
 
-  tex = vec4(vec3(ceil((tex.r + tex.g + tex.b) * mouseX) / 3.0 / mouseX), 1.0);
+  float value = mouseX;
 
-  if (fract(sin(uv.x * 0.5 + tex.r * 3.0) * 500.0) > tex.r) {
-	tex = vec4(vec3(0.1), 1.0);
+  tex.r = tex.g = tex.b = floor((tex.r + tex.g + tex.b) * value) / 3.0 / value;
+
+  if (noise(uv * mouseX) > 0.8) {
+	tex.r = tex.g = tex.b = 0.1;
   } else {
-	tex = vec4(vec3(0.8), 1.0);
+	// tex.r = tex.g = tex.b = 0.8;
   }
 
   gl_FragColor = tex;
-
 }
-
