@@ -1,0 +1,11 @@
+{
+  "name": "pano",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "parcel index.html"
+  },
+  "dependencies": {
+    "three": "^0.105.2"
+  }
+}
