@@ -40,12 +40,15 @@ class PanoBase {
     }
 
     loopBase() {
-        this.loop()
-        requestAnimationFrame(this.loopBase)
+        // this.loop()
+        console.log(this)
+        setTimeout(() => {
+            this.loopBase
+        }, 300);
     }
 
     loop() {
-        
+
     }
 
 }
