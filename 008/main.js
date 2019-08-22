@@ -29,6 +29,6 @@ import { Material, Geometry } from 'three';
     window.pano = new Pano()
     window.THREE = THREE
     pano.camera.position.set(0, 0, 0)
-    pano.camera.lookAt(pano.scene.position)
+    pano.camera.lookAt(new THREE.Vector3(0, 0, -100))
 
 })();
