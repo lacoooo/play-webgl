@@ -25,7 +25,7 @@ class PanoBase {
 
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color('#000000')
-        this.camera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 1, 10000)
+        this.camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 10000)
         this.camera.lookAt(this.scene.position)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
