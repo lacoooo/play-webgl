@@ -16,20 +16,21 @@ import * as THREE from "three";
         this.camera.target.z = 0;
         const fovm = this.camera._m;
         this.camera._m = 4;
+        const duration = 6000
         anime({
           targets: this.camera.target,
           z: -100,
-          easing: "linear",
+          easing: "easeInOutExpo",
           round: 1,
-          round: 10,
-          duration: 5000
+          round: 100,
+          duration: duration
         });
         anime({
           targets: this.camera.position,
           y: 0,
           round: 1,
-          duration: 5000,
-          round: 10,
+          duration: duration,
+          round: 100,
           easing: "easeInOutExpo",
           update: () => {
             this.camera.lookAt(this.camera.target);
@@ -39,10 +40,11 @@ import * as THREE from "three";
           targets: this.camera,
           _m: fovm,
           round: 1,
-          duration: 5000,
+          duration: duration,
           round: 100,
           easing: "easeInOutExpo",
           update: () => {
+            // console.log(this.camera._m)
             this.camera.setFocalLength(this.camera._m);
           }
         });
@@ -66,7 +68,7 @@ import * as THREE from "three";
 
   const options = {
     width: 1400,
-    height: 700,
+    height: 800,
     image: require("./img/1.jpg")
   };
 
