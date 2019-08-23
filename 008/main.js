@@ -69,7 +69,8 @@ import * as THREE from "three";
   const options = {
     width: 1400,
     height: 800,
-    image: require("./img/1.jpg")
+    image: require("./img/1.jpg"),
+    isAddTagMode: true
   };
 
   window.pano = new Pano(options);

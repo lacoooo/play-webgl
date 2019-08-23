@@ -3,6 +3,8 @@ import * as THREE from 'three'
 let startX = 0,
     startY = 0
 
+let raycaster = new THREE.Raycaster()
+
 const HALF_PI = Math.PI * 0.5
 
 class PanoBase {
@@ -62,6 +64,7 @@ class PanoBase {
         this._initSphere()
         this._bindScale()
         this._bindRotate()
+        this._bindTagEvents()
         this._setupBase()
         this._loopBase()
     }
@@ -141,21 +144,63 @@ class PanoBase {
     }
 
     getScreenPosition() {
-        var projector = new THREE.Projector();
-        var world_vector = new THREE.Vector3(0,0,1);  
+        let pos = new THREE.Vector3()
+        pos = pos.setFromMatrixPosition(this.sphere.matrixWorld)
+        pos.project(this.camera);
         
-        var vector = projector.projectVector(world_vector, camera);  
+        let widthHalf = this.options.width / 2;
+        let heightHalf = this.options.height / 2;
         
-        var halfWidth = this.options.width / 2;  
-        var halfHeight = this.options.height / 2;  
+        pos.x = (pos.x * widthHalf) + widthHalf;
+        pos.y = - (pos.y * heightHalf) + heightHalf;
+        pos.z = 0;
         
-        var result = {  
-        
-            x: Math.round(vector.x * halfWidth + halfWidth),  
-            y: Math.round(-vector.y * halfHeight + halfHeight)  
-        
-        };
-        console.log(result)
+        console.log(pos)
+    }
+
+    _bindTagEvents() {
+        if (!this.options.isAddTagMode) {
+            return
+        }
+        const mouse = new THREE.Vector2()
+
+        let sameX, sameY
+
+        this.container.addEventListener('mousemove', (ev = window.event) => {
+            ev.preventDefault()
+            mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
+            mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
+        })
+
+        this.container.addEventListener('mousedown', (ev = window.event) => {
+            ev.preventDefault()
+            sameX = ev.clientX
+            sameY = ev.clientY
+        })
+
+        this.container.addEventListener('mouseup', (ev = window.event) => {
+            ev.preventDefault()
+            // 如果down和up不是同一个位置，则此次交互不是为了添加tag
+            if (sameX != ev.clientX || sameY != ev.clientY) {
+                return
+            }
+            raycaster.setFromCamera( mouse, this.camera )
+            const intersects = raycaster.intersectObjects( this.scene.children )
+            if ( intersects.length > 0 ) {
+                console.log(intersects[0].point)
+                const point = intersects[0].point
+                const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
+                const geometry = new THREE.SphereGeometry(2, 10, 10)
+                const pos = new THREE.Mesh( geometry, material )
+                pos.position.x = point.x
+                pos.position.y = point.y
+                pos.position.z = point.z
+                pos.parent = this.sphere
+                this.sphere.children.push(pos)
+                // this.getScreenPosition()
+            }
+        })
+
     }
 
     _setupBase() {
