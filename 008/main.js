@@ -12,22 +12,21 @@ import { Material, Geometry } from 'three';
 
         setup() {
             const material = new THREE.MeshBasicMaterial(
-                { map: new THREE.TextureLoader().load(require('./img/1.jpg'))
-            } )
+                { map: new THREE.TextureLoader().load(require('./img/1.jpg')) }
+            )
             material.side = THREE.DoubleSide
-            const geometry = new THREE.SphereGeometry(100, 100, 100)
+            const geometry = new THREE.SphereGeometry(100, 20, 20)
             this.sphere = new THREE.Mesh( geometry, material )
             this.scene.add(this.sphere)
-            setTimeout(() => {
-                this.renderer.render(this.scene, this.camera)
-            }, 500);
+            this.camera.position.set(0, 0, 0)
+            this.camera.lookAt(new THREE.Vector3(0, 0, -100))
         }
 
-        // loop() {
-        //     // this.sphere.rotation.y -= 0.04
-        //     // this.sphere.rotation.x -= 0.04
-        //     // this.sphere.rotation.z -= 0.04
-        // }
+        loop() {
+            // this.sphere.rotation.y -= 0.04
+            // this.sphere.rotation.x -= 0.04
+            // this.sphere.rotation.z -= 0.04
+        }
 
     }
 
@@ -38,7 +37,5 @@ import { Material, Geometry } from 'three';
 
     window.pano = new Pano(options)
     window.THREE = THREE
-    pano.camera.position.set(0, 0, 0)
-    pano.camera.lookAt(new THREE.Vector3(0, 0, -100))
 
 })();

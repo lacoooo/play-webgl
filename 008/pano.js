@@ -9,28 +9,40 @@ class PanoBase {
         this.renderer = null
         this.frameCount = 0
         this.sphere = null
+        this.isUserInteracting = false
         this.options = {
-            width: options.width || window.innerWidth,
-            height: options.height || window.innerHeight
-        } 
+            width: window.innerWidth,
+            height: window.innerHeight,
+            fov: 80,
+            _fov: 80
+        }
 
-        this.preSet()
-        this.bindScale()
-        this.setupBase()
-        this.loopBase()
+        this._setOptions(options)
+        this._preSet()
+        this._bindScale()
+        this._bindRotate()
+        this._setupBase()
+        this._loopBase()
+    }
+
+    _setOptions(options) {
+
+        Object.assign(this.options, this.options, options)
+
     }
 
     /**
      * 初始化canvas
      */
-    preSet() {
+    _preSet() {
 
         this.container = document.createElement('div')
         document.body.appendChild(this.container)
 
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color('#000000')
-        this.camera = new THREE.PerspectiveCamera(90, this.options.width / this.options.height, 1, 10000)
+        this.camera = new THREE.PerspectiveCamera(this.options._fov, this.options.width / this.options.height, 1, 10000)
+        this.camera._m = this.camera.getFocalLength()
         this.camera.lookAt(this.scene.position)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -41,12 +53,36 @@ class PanoBase {
 
     }
 
-    bindScale() {
+    _bindScale() {
         this.container.addEventListener('mousewheel', (ev = window.event) => {
-            console.log(ev.wheelDelta)
+            ev.preventDefault()
+            const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
+            if (newFov < 60 || newFov > 120) return
+            const m = this.camera._m + (newFov - this.options._fov) * 0.3
+            this.camera.setFocalLength(m)
+            this.options.fov = newFov
         })
     }
-    setupBase() {
+
+    _bindRotate() {
+
+        this.container.addEventListener('mousedown', (ev = window.event) => {
+            ev.preventDefault()
+            this.isUserInteracting = true
+        })
+
+        this.container.addEventListener('mousemove', (ev = window.event) => {
+            ev.preventDefault()
+        })
+
+        this.container.addEventListener('mouseup', (ev = window.event) => {
+            ev.preventDefault()
+            this.isUserInteracting = false
+        })
+
+    }
+
+    _setupBase() {
         this.setup()
         console.log(1)
         this.renderer.render(this.scene, this.camera)
@@ -56,7 +92,7 @@ class PanoBase {
         console.log('未设置setup')
     }
 
-    loopBase(instance) {
+    _loopBase(instance) {
 
         instance = this || instance
         instance.renderer.render(instance.scene, instance.camera)
@@ -68,7 +104,7 @@ class PanoBase {
             this.loop()
         }
         instance.frameCount ++
-        requestAnimationFrame(instance.loopBase.bind(instance))
+        requestAnimationFrame(instance._loopBase.bind(instance))
 
     }
 
