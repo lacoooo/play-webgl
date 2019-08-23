@@ -1,25 +1,39 @@
+import "babel-polyfill"
 import PanoBase from './pano'
 import * as THREE from 'three'
 import { Material, Geometry } from 'three';
+
+// https://github.com/juliangarnier/anime
 
 (() => {
 
     class Pano extends PanoBase {
 
-        ok() {
-            console.log('ojbk')
+        async preLoad() {
+            await this.loadImage(require('./img/1.jpg'))
         }
 
         setup() {
+
             const material = new THREE.MeshBasicMaterial(
-                { map: new THREE.TextureLoader().load(require('./img/1.jpg')) }
+                { map: new THREE.TextureLoader().load(this.image) }
             )
             material.side = THREE.DoubleSide
-            const geometry = new THREE.SphereGeometry(100, 20, 20)
+            const geometry = new THREE.SphereGeometry(100, 50, 50)
             this.sphere = new THREE.Mesh( geometry, material )
             this.scene.add(this.sphere)
             this.camera.position.set(0, 0, 0)
-            this.camera.lookAt(new THREE.Vector3(0, 0, -100))
+
+            // this.sphere.geometry.vertices.forEach(ele => {
+            //     const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
+            //     const geometry = new THREE.SphereGeometry(2, 10, 10)
+            //     const pos = new THREE.Mesh( geometry, material )
+            //     pos.position.x = ele.x
+            //     pos.position.y = ele.y
+            //     pos.position.z = ele.z
+            //     this.sphere.children.push(pos)
+            // });
+            
         }
 
         loop() {
