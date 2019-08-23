@@ -18,8 +18,8 @@ class PanoBase {
         this.options = {
             width: window.innerWidth,
             height: window.innerHeight,
-            fov: 70,
-            _fov: 70
+            fov: 80,
+            _fov: 80
         }
 
         this._setOptions(options)
@@ -45,7 +45,7 @@ class PanoBase {
         this.scene.background = new THREE.Color('#000000')
         this.camera = new THREE.PerspectiveCamera(this.options._fov, this.options.width / this.options.height, 1, 10000)
         this.camera._m = this.camera.getFocalLength()
-        this.camera.target = new THREE.Vector3(0, 0, -100)
+        this.camera.target = new THREE.Vector3(0, 0, 0)
         this.camera.lookAt(this.camera.target)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -58,6 +58,8 @@ class PanoBase {
 
     async _preLoadBase() {
         await this.preLoad()
+        await this.loadImage(this.options.image)
+        this._initSphere()
         this._bindScale()
         this._bindRotate()
         this._setupBase()
@@ -74,9 +76,20 @@ class PanoBase {
             img.src = imgUrl
             img.onload = () => {
                 this.image = imgUrl
-                r()
+                r(imgUrl)
             }
         })
+    }
+
+    _initSphere() {
+        const material = new THREE.MeshBasicMaterial(
+            { map: new THREE.TextureLoader().load(this.image) }
+        )
+        material.side = THREE.DoubleSide
+        const geometry = new THREE.SphereGeometry(100, 40, 40)
+        this.sphere = new THREE.Mesh( geometry, material )
+        this.scene.add(this.sphere)
+        this.camera.position.set(0, 0, 0)
     }
 
     _bindScale() {
@@ -147,7 +160,6 @@ class PanoBase {
 
     _setupBase() {
         this.setup()
-        console.log(1)
         this.renderer.render(this.scene, this.camera)
     }
 
