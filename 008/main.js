@@ -46,6 +46,7 @@ import * as THREE from "three";
           update: () => {
             // console.log(this.camera._m)
             this.camera.setFocalLength(this.camera._m);
+            this.camera.updateProjectionMatrix();
           }
         });
       // this.sphere.geometry.vertices.forEach(ele => {
@@ -60,9 +61,9 @@ import * as THREE from "three";
     }
 
     loop() {
-      // this.sphere.rotation.y -= 0.04
-      // this.sphere.rotation.x -= 0.04
-      // this.sphere.rotation.z -= 0.04
+      // this.sphere.rotation.y -= 0.004
+      // this.sphere.rotation.x -= 0.004
+      // this.sphere.rotation.z -= 0.004
     }
   }
 

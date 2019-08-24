@@ -113,8 +113,8 @@ class PanoBase {
             this.isUserInteracting = true
             startX = ev.clientX
             startY = ev.clientY
-            this.sphere.rotation.prevX = this.sphere.rotation.x
-            this.sphere.rotation.prevY = this.sphere.rotation.y
+            this.camera.rotation.prevX = this.camera.rotation.x
+            this.camera.rotation.prevY = this.camera.rotation.y
         })
 
         this.container.addEventListener('mousemove', (ev = window.event) => {
@@ -122,12 +122,12 @@ class PanoBase {
             if (this.isUserInteracting) {
                 const currentX = ev.clientX,
                       currentY = ev.clientY
-                const newRX = this.sphere.rotation.prevX + (startY - currentY) * 0.002
-                const newRY = this.sphere.rotation.prevY + (startX - currentX) * 0.002
-                if (Math.abs(newRX) < HALF_PI) {
-                    this.sphere.rotation.x = newRX
-                }
-                this.sphere.rotation.y = newRY
+                const newRX = this.camera.rotation.prevX + (currentY - startY) * 0.002
+                // const newRY = this.camera.rotation.prevY + (currentX - startX) * 0.002
+                // if (Math.abs(newRX) < HALF_PI) {
+                    this.camera.rotation.x = newRX
+                // }
+                // this.camera.rotation.y = newRY
             }
         })
 
@@ -185,9 +185,9 @@ class PanoBase {
                 return
             }
             raycaster.setFromCamera( mouse, this.camera )
+            this.sphere.updateMatrixWorld()
             const intersects = raycaster.intersectObjects( this.scene.children )
             if ( intersects.length > 0 ) {
-                console.log(intersects[0].point)
                 const point = intersects[0].point
                 const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
                 const geometry = new THREE.SphereGeometry(2, 10, 10)
@@ -195,9 +195,7 @@ class PanoBase {
                 pos.position.x = point.x
                 pos.position.y = point.y
                 pos.position.z = point.z
-                pos.parent = this.sphere
-                this.sphere.children.push(pos)
-                // this.getScreenPosition()
+                this.sphere.add(pos)
             }
         })
 
