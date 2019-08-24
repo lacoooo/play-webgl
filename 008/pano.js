@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import anime from "animejs/lib/anime.es.js";
 
 let startX = 0,
     startY = 0,
@@ -111,8 +112,6 @@ class PanoBase {
     _bindRotate() {
         let newRX2
         let newRY2
-        let prevNewRX2
-        let prevNewRY2
 
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
@@ -143,16 +142,8 @@ class PanoBase {
                 newRY2 = currentY - startY
                 this.camera.target.x = Math.sin((newRX2 + indexX) * 0.002) * 100
                 this.camera.target.z = Math.cos((newRX2 + indexX) * 0.002) * 100
-                prevNewRX2 = newRX2
-                if (Math.abs(this.camera.target.y) < 90 ||
-                    Math.abs(this.camera.target.y) >= 90 && 
-                    Math.abs(this.camera.target.y) > Math.abs(Math.sin((newRY2 + indexY) * 0.002) * 100)) {
-                        this.camera.target.y = Math.sin((newRY2 + indexY) * 0.002) * 100
-                }
-                if (Math.abs(this.camera.target.y) < 90) {
-                    prevNewRY2 = newRY2
-                }
-                // console.log(Math.abs(this.camera.target.y))
+                const y = Math.sin((newRY2 + indexY) * 0.002) * 100
+                this.camera.target.y = y
                 this.camera.lookAt(this.camera.target)
             }
         })
@@ -160,13 +151,18 @@ class PanoBase {
         this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = false
-            indexX += prevNewRX2
-            indexY += prevNewRY2 || newRY2
-            prevNewRX2 = 0
-            prevNewRY2 = 0
+            indexX += newRX2
+            indexY += newRY2
+            console.log(indexY, newRY2)
             newRX2 = 0
             newRY2 = 0
-
+            if (indexY > 600) {
+                indexY = 600
+            }
+            else if (indexY < -600) {
+                indexY = -600
+            }
+            console.log(indexY)
         })
 
         this.container.addEventListener('mouseout', (ev = window.event) => {
