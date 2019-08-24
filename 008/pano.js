@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 
 let startX = 0,
-    startY = 0
+    startY = 0,
+    indexX = 0,
+    indexY = 0
 
 let raycaster = new THREE.Raycaster()
 
@@ -47,7 +49,7 @@ class PanoBase {
         this.scene.background = new THREE.Color('#000000')
         this.camera = new THREE.PerspectiveCamera(this.options._fov, this.options.width / this.options.height, 1, 10000)
         this.camera._m = this.camera.getFocalLength()
-        this.camera.target = new THREE.Vector3(0, 0, 0)
+        this.camera.target = new THREE.Vector3(0, 0, 1)
         this.camera.lookAt(this.camera.target)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -107,14 +109,21 @@ class PanoBase {
     }
 
     _bindRotate() {
+        let newRX2
+        let newRY2
+        let prevNewRX2
+        let prevNewRY2
 
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = true
             startX = ev.clientX
             startY = ev.clientY
-            this.camera.rotation.prevX = this.camera.rotation.x
-            this.camera.rotation.prevY = this.camera.rotation.y
+            // this.camera.rotation.prevX = this.camera.rotation.x
+            // this.camera.rotation.prevY = this.camera.rotation.y
+            this.camera.target.prevX = this.camera.target.x
+            this.camera.target.prevY = this.camera.target.y
+            this.camera.target.prevZ = this.camera.target.z
         })
 
         this.container.addEventListener('mousemove', (ev = window.event) => {
@@ -122,18 +131,42 @@ class PanoBase {
             if (this.isUserInteracting) {
                 const currentX = ev.clientX,
                       currentY = ev.clientY
-                const newRX = this.camera.rotation.prevX + (currentY - startY) * 0.002
+                // const newRX = this.camera.rotation.prevX + (currentY - startY) * 0.002
                 // const newRY = this.camera.rotation.prevY + (currentX - startX) * 0.002
-                // if (Math.abs(newRX) < HALF_PI) {
-                    this.camera.rotation.x = newRX
-                // }
+                // // if (Math.abs(newRX) < HALF_PI) {
+                //     this.camera.rotation.x = newRX
+                // // }
+                // // console.log(newRY)
                 // this.camera.rotation.y = newRY
+
+                newRX2 = currentX - startX
+                newRY2 = currentY - startY
+                this.camera.target.x = Math.sin((newRX2 + indexX) * 0.002) * 100
+                this.camera.target.z = Math.cos((newRX2 + indexX) * 0.002) * 100
+                prevNewRX2 = newRX2
+                if (Math.abs(this.camera.target.y) < 90 ||
+                    Math.abs(this.camera.target.y) >= 90 && 
+                    Math.abs(this.camera.target.y) > Math.abs(Math.sin((newRY2 + indexY) * 0.002) * 100)) {
+                        this.camera.target.y = Math.sin((newRY2 + indexY) * 0.002) * 100
+                }
+                if (Math.abs(this.camera.target.y) < 90) {
+                    prevNewRY2 = newRY2
+                }
+                // console.log(Math.abs(this.camera.target.y))
+                this.camera.lookAt(this.camera.target)
             }
         })
 
         this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = false
+            indexX += prevNewRX2
+            indexY += prevNewRY2 || newRY2
+            prevNewRX2 = 0
+            prevNewRY2 = 0
+            newRX2 = 0
+            newRY2 = 0
+
         })
 
         this.container.addEventListener('mouseout', (ev = window.event) => {

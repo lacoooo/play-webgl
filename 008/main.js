@@ -13,17 +13,17 @@ import * as THREE from "three";
 
     setup() {
         this.camera.position.y = 99;
-        this.camera.target.z = 0;
         const fovm = this.camera._m;
         this.camera._m = 4;
         const duration = 6000
         anime({
           targets: this.camera.target,
-          z: -100,
+          z: 100,
           easing: "easeInOutExpo",
           round: 1,
           round: 100,
-          duration: duration
+          duration: duration,
+          complete: () => {}
         });
         anime({
           targets: this.camera.position,
@@ -49,21 +49,10 @@ import * as THREE from "three";
             this.camera.updateProjectionMatrix();
           }
         });
-      // this.sphere.geometry.vertices.forEach(ele => {
-      //     const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
-      //     const geometry = new THREE.SphereGeometry(2, 10, 10)
-      //     const pos = new THREE.Mesh( geometry, material )
-      //     pos.position.x = ele.x
-      //     pos.position.y = ele.y
-      //     pos.position.z = ele.z
-      //     this.sphere.children.push(pos)
-      // });
     }
 
     loop() {
-      // this.sphere.rotation.y -= 0.004
-      // this.sphere.rotation.x -= 0.004
-      // this.sphere.rotation.z -= 0.004
+      // this.camera.rotation.y += 0.01
     }
   }
 
