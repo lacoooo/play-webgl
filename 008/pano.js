@@ -110,16 +110,14 @@ class PanoBase {
     }
 
     _bindRotate() {
-        let newRX2
-        let newRY2
+        let newRX2 = 0
+        let newRY2 = 0
 
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = true
             startX = ev.clientX
             startY = ev.clientY
-            // this.camera.rotation.prevX = this.camera.rotation.x
-            // this.camera.rotation.prevY = this.camera.rotation.y
             this.camera.target.prevX = this.camera.target.x
             this.camera.target.prevY = this.camera.target.y
             this.camera.target.prevZ = this.camera.target.z
@@ -130,21 +128,14 @@ class PanoBase {
             if (this.isUserInteracting) {
                 const currentX = ev.clientX,
                       currentY = ev.clientY
-                // const newRX = this.camera.rotation.prevX + (currentY - startY) * 0.002
-                // const newRY = this.camera.rotation.prevY + (currentX - startX) * 0.002
-                // // if (Math.abs(newRX) < HALF_PI) {
-                //     this.camera.rotation.x = newRX
-                // // }
-                // // console.log(newRY)
-                // this.camera.rotation.y = newRY
-
                 newRX2 = currentX - startX
                 newRY2 = currentY - startY
-                this.camera.target.x = Math.sin((newRX2 + indexX) * 0.002) * 100
-                this.camera.target.z = Math.cos((newRX2 + indexX) * 0.002) * 100
-                const y = Math.sin((newRY2 + indexY) * 0.002) * 100
+                this.camera.target.x = Math.sin((newRX2 + indexX) * 0.003) * 100
+                this.camera.target.z = Math.cos((newRX2 + indexX) * 0.003) * 100
+                const y = Math.sin((newRY2 + indexY) * 0.003) * 100
                 this.camera.target.y = y
                 this.camera.lookAt(this.camera.target)
+                this.getScreenPosition()
             }
         })
 
@@ -153,7 +144,7 @@ class PanoBase {
             this.isUserInteracting = false
             indexX += newRX2
             indexY += newRY2
-            console.log(indexY, newRY2)
+            // console.log(indexY, newRY2)
             newRX2 = 0
             newRY2 = 0
             if (indexY > 600) {
@@ -162,7 +153,7 @@ class PanoBase {
             else if (indexY < -600) {
                 indexY = -600
             }
-            console.log(indexY)
+            // console.log(indexY)
         })
 
         this.container.addEventListener('mouseout', (ev = window.event) => {
@@ -173,8 +164,35 @@ class PanoBase {
     }
 
     getScreenPosition() {
+        let vec = this.sphere.children[0]
+        if (!vec) return
+        this.camera.updateMatrix(); // make sure camera's local matrix is updated
+        this.camera.updateMatrixWorld(); // make sure camera's world matrix is updated
+        this.camera.matrixWorldInverse.getInverse( this.camera.matrixWorld );
+        
+        vec.updateMatrix(); // make sure plane's local matrix is updated
+        vec.updateMatrixWorld(); // make sure plane's world matrix is updated
+        
+        // let frustum = new THREE.Frustum();
+        // frustum.setFromMatrix( new THREE.Matrix4().multiplyMatrices( this.camera.projectionMatrix, this.camera.matrixWorldInverse ) );
+        // if ( frustum.containsPoint( vec ) ) {
+        //     console.log(frustum.containsPoint( vec ))
+        // }
+        let vecTotal = 
+        Math.abs(vec.position.x) + 
+        Math.abs(vec.position.y) + 
+        Math.abs(vec.position.z)
+        let tar = this.camera.target
+        let vecDistanceTotal = 
+        Math.abs(vec.position.x - tar.x) +
+        Math.abs(vec.position.y - tar.y) + 
+        Math.abs(vec.position.z - tar.z)
+        // console.log(vecTotal, vecDistanceTotal)
+        if (vecTotal < vecDistanceTotal) {
+            return
+        }
         let pos = new THREE.Vector3()
-        pos = pos.setFromMatrixPosition(this.sphere.matrixWorld)
+        pos = pos.setFromMatrixPosition(vec.matrixWorld)
         pos.project(this.camera);
         
         let widthHalf = this.options.width / 2;
@@ -184,7 +202,9 @@ class PanoBase {
         pos.y = - (pos.y * heightHalf) + heightHalf;
         pos.z = 0;
         
-        console.log(pos)
+        if (pos.x > 0 && pos.x < this.options.width && pos.y > 0 && pos.y < this.options.height) {
+            console.log(pos)
+        }
     }
 
     _bindTagEvents() {

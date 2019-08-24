@@ -57,8 +57,8 @@ import * as THREE from "three";
   }
 
   const options = {
-    width: 1400,
-    height: 800,
+    width: 1000,
+    height: 600,
     image: require("./img/1.jpg"),
     isAddTagMode: true
   };
