@@ -27,7 +27,6 @@ class PanoBase {
             fov: 80,
             _fov: 80
         }
-        // vue控制的数据
         this.DTC = dataControl
         if (!this.container) {
             throw 'no container'
