@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import anime from "animejs/lib/anime.es.js";
+import dataControl from './dataControl.js'
 
 let startX = 0,
     startY = 0,
@@ -13,7 +13,8 @@ const HALF_PI = Math.PI * 0.5
 class PanoBase {
 
     constructor(options = {}) {
-        this.container = null
+        this.container = document.querySelector('#pano')
+        this.op = document.querySelector('#op')
         this.scene = null
         this.camera = null
         this.renderer = null
@@ -26,13 +27,17 @@ class PanoBase {
             fov: 80,
             _fov: 80
         }
-
-        this._setOptions(options)
+        // vue控制的数据
+        this.DTC = dataControl
+        if (!this.container) {
+            throw 'no container'
+        }
+        this._initOptions(options)
         this._preSet()
         this._preLoadBase()
     }
 
-    _setOptions(options) {
+    _initOptions(options) {
 
         Object.assign(this.options, this.options, options)
 
@@ -42,9 +47,7 @@ class PanoBase {
      * 初始化canvas
      */
     _preSet() {
-
-        this.container = document.createElement('div')
-        document.body.appendChild(this.container)
+        this.container.style = `width: ${this.options.width}px;height: ${this.options.height}px`
 
         this.scene = new THREE.Scene()
         this.scene.background = new THREE.Color('#000000')
@@ -58,6 +61,8 @@ class PanoBase {
         this.renderer.setSize(this.options.width, this.options.height)
         
         this.container.appendChild(this.renderer.domElement)
+
+        // this.DTC = dataControl
 
     }
 
@@ -92,7 +97,7 @@ class PanoBase {
             { map: new THREE.TextureLoader().load(this.image) }
         )
         material.side = THREE.DoubleSide
-        const geometry = new THREE.SphereGeometry(100, 40, 40)
+        const geometry = new THREE.SphereGeometry(100, 30, 30)
         this.sphere = new THREE.Mesh( geometry, material )
         this.scene.add(this.sphere)
         this.camera.position.set(0, 0, 0)
@@ -102,7 +107,7 @@ class PanoBase {
         this.container.addEventListener('mousewheel', (ev = window.event) => {
             ev.preventDefault()
             const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
-            if (newFov < 60 || newFov > 120) return
+            if (newFov < 60 || newFov > 90) return
             const m = this.camera._m + (newFov - this.options._fov) * 0.3
             this.camera.setFocalLength(m)
             this.options.fov = newFov
@@ -110,8 +115,8 @@ class PanoBase {
     }
 
     _bindRotate() {
-        let newRX2 = 0
-        let newRY2 = 0
+        let newRX = 0
+        let newRY = 0
 
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
@@ -128,32 +133,36 @@ class PanoBase {
             if (this.isUserInteracting) {
                 const currentX = ev.clientX,
                       currentY = ev.clientY
-                newRX2 = currentX - startX
-                newRY2 = currentY - startY
-                this.camera.target.x = Math.sin((newRX2 + indexX) * 0.003) * 100
-                this.camera.target.z = Math.cos((newRX2 + indexX) * 0.003) * 100
-                const y = Math.sin((newRY2 + indexY) * 0.003) * 100
-                this.camera.target.y = y
+                newRX = currentX - startX
+                newRY = currentY - startY
+
+                if (indexY + newRY > 520) newRY = 520 - indexY
+                else if (indexY + newRY < -520) newRY = -520 - indexY
+
+                const xScore = (newRX + indexX) * 0.003
+                const yScore = (newRY + indexY) * 0.003
+                const y = Math.sin(yScore) * 100
+                const x = Math.sin(xScore) * 100
+                * (1 - Math.abs(Math.sin(yScore)))
+                const z = Math.cos(xScore) * 100
+                * (1 - Math.abs(Math.sin(yScore)))
+                this.camera.target.x = x
+                if (true) {
+                    this.camera.target.y = y
+                }
+                this.camera.target.z = z
                 this.camera.lookAt(this.camera.target)
-                this.getScreenPosition()
+                this.DTC.updatePoints(this)
             }
         })
 
         this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = false
-            indexX += newRX2
-            indexY += newRY2
-            // console.log(indexY, newRY2)
-            newRX2 = 0
-            newRY2 = 0
-            if (indexY > 600) {
-                indexY = 600
-            }
-            else if (indexY < -600) {
-                indexY = -600
-            }
-            // console.log(indexY)
+            indexX += newRX
+            indexY += newRY
+            newRX = 0
+            newRY = 0
         })
 
         this.container.addEventListener('mouseout', (ev = window.event) => {
@@ -161,50 +170,6 @@ class PanoBase {
             this.isUserInteracting = false
         })
 
-    }
-
-    getScreenPosition() {
-        let vec = this.sphere.children[0]
-        if (!vec) return
-        this.camera.updateMatrix(); // make sure camera's local matrix is updated
-        this.camera.updateMatrixWorld(); // make sure camera's world matrix is updated
-        this.camera.matrixWorldInverse.getInverse( this.camera.matrixWorld );
-        
-        vec.updateMatrix(); // make sure plane's local matrix is updated
-        vec.updateMatrixWorld(); // make sure plane's world matrix is updated
-        
-        // let frustum = new THREE.Frustum();
-        // frustum.setFromMatrix( new THREE.Matrix4().multiplyMatrices( this.camera.projectionMatrix, this.camera.matrixWorldInverse ) );
-        // if ( frustum.containsPoint( vec ) ) {
-        //     console.log(frustum.containsPoint( vec ))
-        // }
-        let vecTotal = 
-        Math.abs(vec.position.x) + 
-        Math.abs(vec.position.y) + 
-        Math.abs(vec.position.z)
-        let tar = this.camera.target
-        let vecDistanceTotal = 
-        Math.abs(vec.position.x - tar.x) +
-        Math.abs(vec.position.y - tar.y) + 
-        Math.abs(vec.position.z - tar.z)
-        // console.log(vecTotal, vecDistanceTotal)
-        if (vecTotal < vecDistanceTotal) {
-            return
-        }
-        let pos = new THREE.Vector3()
-        pos = pos.setFromMatrixPosition(vec.matrixWorld)
-        pos.project(this.camera);
-        
-        let widthHalf = this.options.width / 2;
-        let heightHalf = this.options.height / 2;
-        
-        pos.x = (pos.x * widthHalf) + widthHalf;
-        pos.y = - (pos.y * heightHalf) + heightHalf;
-        pos.z = 0;
-        
-        if (pos.x > 0 && pos.x < this.options.width && pos.y > 0 && pos.y < this.options.height) {
-            console.log(pos)
-        }
     }
 
     _bindTagEvents() {
@@ -237,14 +202,17 @@ class PanoBase {
             this.sphere.updateMatrixWorld()
             const intersects = raycaster.intersectObjects( this.scene.children )
             if ( intersects.length > 0 ) {
+
                 const point = intersects[0].point
                 const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
-                const geometry = new THREE.SphereGeometry(2, 10, 10)
+                const geometry = new THREE.SphereGeometry(10, 10, 10)
                 const pos = new THREE.Mesh( geometry, material )
                 pos.position.x = point.x
                 pos.position.y = point.y
                 pos.position.z = point.z
                 this.sphere.add(pos)
+                this.DTC.addPoint({ pos3d: pos })
+                this.DTC.updatePoints(this)
             }
         })
 
@@ -262,6 +230,7 @@ class PanoBase {
     _loopBase(instance) {
 
         instance = this || instance
+        this.camera.matrixWorldNeedsUpdate = true
         instance.renderer.render(instance.scene, instance.camera)
         if (instance.__proto__.loop == instance.__proto__.__proto__.loop) {
             if (instance.frameCount === 0) {

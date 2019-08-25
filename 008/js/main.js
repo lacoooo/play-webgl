@@ -1,7 +1,8 @@
-import "babel-polyfill";
-import anime from "animejs/lib/anime.es.js";
-import PanoBase from "./pano";
-import * as THREE from "three";
+import "babel-polyfill"
+import '../scss/pano.scss'
+import anime from "animejs/lib/anime.es.js"
+import PanoBase from "./pano.js"
+import * as THREE from "three"
 
 // https://github.com/juliangarnier/anime
 
@@ -59,7 +60,7 @@ import * as THREE from "three";
   const options = {
     width: 1000,
     height: 600,
-    image: require("./img/1.jpg"),
+    image: require("../img/1.jpg"),
     isAddTagMode: true
   };
 
