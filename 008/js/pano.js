@@ -117,7 +117,7 @@ class PanoBase {
         let newRX = 0
         let newRY = 0
 
-        this.container.addEventListener('mousedown', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = true
             startX = ev.clientX
@@ -127,7 +127,7 @@ class PanoBase {
             this.camera.target.prevZ = this.camera.target.z
         })
 
-        this.container.addEventListener('mousemove', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
             if (this.isUserInteracting) {
                 const currentX = ev.clientX,
@@ -155,7 +155,7 @@ class PanoBase {
             }
         })
 
-        this.container.addEventListener('mouseup', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = false
             indexX += newRX
@@ -164,7 +164,7 @@ class PanoBase {
             newRY = 0
         })
 
-        this.container.addEventListener('mouseout', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mouseout', (ev = window.event) => {
             ev.preventDefault()
             this.isUserInteracting = false
         })
@@ -179,19 +179,19 @@ class PanoBase {
 
         let sameX, sameY
 
-        this.container.addEventListener('mousemove', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
             mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
             mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
         })
 
-        this.container.addEventListener('mousedown', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
             sameX = ev.clientX
             sameY = ev.clientY
         })
 
-        this.container.addEventListener('mouseup', (ev = window.event) => {
+        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
             // 如果down和up不是同一个位置，则此次交互不是为了添加tag
             if (sameX != ev.clientX || sameY != ev.clientY) {
@@ -204,14 +204,13 @@ class PanoBase {
 
                 const point = intersects[0].point
                 const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
-                const geometry = new THREE.SphereGeometry(10, 10, 10)
+                const geometry = new THREE.SphereGeometry(0.1, 2, 2)
                 const pos = new THREE.Mesh( geometry, material )
                 pos.position.x = point.x
                 pos.position.y = point.y
                 pos.position.z = point.z
                 this.sphere.add(pos)
                 this.DTC.addPoint({ pos3d: pos })
-                this.DTC.updatePoints(this)
             }
         })
 
@@ -229,7 +228,8 @@ class PanoBase {
     _loopBase(instance) {
 
         instance = this || instance
-        this.camera.matrixWorldNeedsUpdate = true
+        // this.camera.matrixWorldNeedsUpdate = true
+        this.DTC.updatePoints(this)
         instance.renderer.render(instance.scene, instance.camera)
         if (instance.__proto__.loop == instance.__proto__.__proto__.loop) {
             if (instance.frameCount === 0) {
