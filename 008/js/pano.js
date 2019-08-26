@@ -1,11 +1,6 @@
 import * as THREE from 'three'
 import dataControl from './dataControl.js'
 
-let startX = 0,
-    startY = 0,
-    indexX = 0,
-    indexY = 0
-
 let raycaster = new THREE.Raycaster()
 
 const HALF_PI = Math.PI * 0.5
@@ -28,6 +23,7 @@ class PanoBase {
             _fov: 80
         }
         this.DTC = dataControl
+        this.canControl = false
         if (!this.container) {
             throw 'no container'
         }
@@ -52,7 +48,7 @@ class PanoBase {
         this.scene.background = new THREE.Color('#000000')
         this.camera = new THREE.PerspectiveCamera(this.options._fov, this.options.width / this.options.height, 1, 10000)
         this.camera._m = this.camera.getFocalLength()
-        this.camera.target = new THREE.Vector3(0, 0, 1)
+        this.camera.target = new THREE.Vector3(1, 0, 0)
         this.camera.lookAt(this.camera.target)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -105,6 +101,7 @@ class PanoBase {
     _bindScale() {
         this.container.addEventListener('mousewheel', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
             if (newFov < 60 || newFov > 90) return
             const m = this.camera._m + (newFov - this.options._fov) * 0.3
@@ -114,11 +111,18 @@ class PanoBase {
     }
 
     _bindRotate() {
-        let newRX = 0
-        let newRY = 0
+        let newRX = 0,
+        newRY = 0,
+        startX = 0,
+        startY = 0,
+        indexX = 0,
+        indexY = 0,
+        currentX = 0,
+        currentY = 0
 
-        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
+        this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             this.isUserInteracting = true
             startX = ev.clientX
             startY = ev.clientY
@@ -127,12 +131,13 @@ class PanoBase {
             this.camera.target.prevZ = this.camera.target.z
         })
 
-        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
+        this.container.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             if (this.isUserInteracting) {
-                const currentX = ev.clientX,
-                      currentY = ev.clientY
-                newRX = currentX - startX
+                currentX = ev.clientX,
+                currentY = ev.clientY
+                newRX = startX - currentX
                 newRY = currentY - startY
 
                 if (indexY + newRY > 520) newRY = 520 - indexY
@@ -141,22 +146,24 @@ class PanoBase {
                 const xScore = (newRX + indexX) * 0.003
                 const yScore = (newRY + indexY) * 0.003
                 const y = Math.sin(yScore) * 100
-                const x = Math.sin(xScore) * 100
+                const x = Math.cos(xScore) * 100
                 * (1 - Math.abs(Math.sin(yScore)))
-                const z = Math.cos(xScore) * 100
+                const z = Math.sin(xScore) * 100
                 * (1 - Math.abs(Math.sin(yScore)))
                 this.camera.target.x = x
                 if (true) {
                     this.camera.target.y = y
                 }
                 this.camera.target.z = z
+                console.log(Math.floor(this.camera.target.x), Math.floor(this.camera.target.z))
                 this.camera.lookAt(this.camera.target)
                 this.DTC.updatePoints(this)
             }
         })
 
-        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
+        this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             this.isUserInteracting = false
             indexX += newRX
             indexY += newRY
@@ -164,35 +171,37 @@ class PanoBase {
             newRY = 0
         })
 
-        this.renderer.domElement.addEventListener('mouseout', (ev = window.event) => {
+        this.container.addEventListener('mouseout', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             this.isUserInteracting = false
         })
 
     }
 
     _bindTagEvents() {
-        if (!this.options.isAddTagMode) {
-            return
-        }
+        if (!this.options.isAddTagMode) return
         const mouse = new THREE.Vector2()
 
         let sameX, sameY
 
-        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
+        this.container.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
             mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
         })
 
-        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
+        this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             sameX = ev.clientX
             sameY = ev.clientY
         })
 
-        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
+        this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
+            if (!this.canControl) return
             // 如果down和up不是同一个位置，则此次交互不是为了添加tag
             if (sameX != ev.clientX || sameY != ev.clientY) {
                 return

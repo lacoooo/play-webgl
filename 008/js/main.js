@@ -16,15 +16,17 @@ import * as THREE from "three"
         this.camera.position.y = 99;
         const fovm = this.camera._m;
         this.camera._m = 4;
-        const duration = 6000
+        const duration = 3000
         anime({
           targets: this.camera.target,
-          z: 100,
+          x: 100,
           easing: "easeInOutExpo",
           round: 1,
           round: 100,
           duration: duration,
-          complete: () => {}
+          complete: () => {
+            this.canControl = true
+          }
         });
         anime({
           targets: this.camera.position,
@@ -58,9 +60,9 @@ import * as THREE from "three"
   }
 
   const options = {
-    width: 1000,
-    height: 600,
-    image: require("../img/1.jpg"),
+    width: 1400,
+    height: 1000,
+    image: require("../img/1.png"),
     isAddTagMode: true
   };
 
