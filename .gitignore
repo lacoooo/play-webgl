@@ -53,6 +53,7 @@ dist
 *.jpg
 *.jpeg
 *.png
+*.mp4
 
 # Optional REPL history
 .node_repl_history
