@@ -3,8 +3,6 @@ import dataControl from './dataControl.js'
 
 let raycaster = new THREE.Raycaster()
 
-const HALF_PI = Math.PI * 0.5
-
 class PanoBase {
 
     constructor(options = {}) {
@@ -24,6 +22,7 @@ class PanoBase {
         }
         this.DTC = dataControl
         this.canControl = false
+        this.isControllingTag = false
         if (!this.container) {
             throw 'no container'
         }
@@ -101,9 +100,10 @@ class PanoBase {
     _bindScale() {
         this.container.addEventListener('mousewheel', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
-            if (newFov < 60 || newFov > 90) return
+            if (newFov < 60 || newFov > 100) return
             const m = this.camera._m + (newFov - this.options._fov) * 0.3
             this.camera.setFocalLength(m)
             this.options.fov = newFov
@@ -122,6 +122,7 @@ class PanoBase {
 
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             this.isUserInteracting = true
             startX = ev.clientX
@@ -133,36 +134,37 @@ class PanoBase {
 
         this.container.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             if (this.isUserInteracting) {
+                if (this.isControllingTag) return
                 currentX = ev.clientX,
                 currentY = ev.clientY
                 newRX = startX - currentX
                 newRY = currentY - startY
 
+                const speed = 0.003
+
                 if (indexY + newRY > 520) newRY = 520 - indexY
                 else if (indexY + newRY < -520) newRY = -520 - indexY
 
-                const xScore = (newRX + indexX) * 0.003
-                const yScore = (newRY + indexY) * 0.003
+                const xScore = (newRX + indexX) * speed
+                const yScore = (newRY + indexY) * speed
                 const y = Math.sin(yScore) * 100
                 const x = Math.cos(xScore) * 100
                 * (1 - Math.abs(Math.sin(yScore)))
                 const z = Math.sin(xScore) * 100
                 * (1 - Math.abs(Math.sin(yScore)))
                 this.camera.target.x = x
-                if (true) {
-                    this.camera.target.y = y
-                }
+                this.camera.target.y = y
                 this.camera.target.z = z
-                console.log(Math.floor(this.camera.target.x), Math.floor(this.camera.target.z))
                 this.camera.lookAt(this.camera.target)
-                this.DTC.updatePoints(this)
             }
         })
 
         this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             this.isUserInteracting = false
             indexX += newRX
@@ -173,8 +175,11 @@ class PanoBase {
 
         this.container.addEventListener('mouseout', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
-            this.isUserInteracting = false
+            // this.isUserInteracting = false
+            this.isControllingTag = false
+            console.log('mouseout')
         })
 
     }
@@ -185,25 +190,32 @@ class PanoBase {
 
         let sameX, sameY
 
-        this.container.addEventListener('mousemove', (ev = window.event) => {
-            ev.preventDefault()
-            if (!this.canControl) return
-            mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
-            mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
-        })
-
         this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             sameX = ev.clientX
             sameY = ev.clientY
         })
 
+        this.container.addEventListener('mousemove', (ev = window.event) => {
+            ev.preventDefault()
+            
+            if (!this.canControl) return
+            mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
+            mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
+        })
+
         this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
+            
             if (!this.canControl) return
             // 如果down和up不是同一个位置，则此次交互不是为了添加tag
             if (sameX != ev.clientX || sameY != ev.clientY) {
+                return
+            }
+            if (this.isControllingTag) {
+                this.isControllingTag = false
                 return
             }
             raycaster.setFromCamera( mouse, this.camera )
@@ -213,7 +225,7 @@ class PanoBase {
 
                 const point = intersects[0].point
                 const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
-                const geometry = new THREE.SphereGeometry(0.1, 2, 2)
+                const geometry = new THREE.SphereGeometry(0.01, 2, 2)
                 const pos = new THREE.Mesh( geometry, material )
                 pos.position.x = point.x
                 pos.position.y = point.y

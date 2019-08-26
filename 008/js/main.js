@@ -20,7 +20,7 @@ import * as THREE from "three"
         anime({
           targets: this.camera.target,
           x: 100,
-          easing: "easeInOutExpo",
+          easing: "easeInOutCubic",
           round: 1,
           round: 100,
           duration: duration,
@@ -34,7 +34,7 @@ import * as THREE from "three"
           round: 1,
           duration: duration,
           round: 100,
-          easing: "easeInOutExpo",
+          easing: "easeInOutCubic",
           update: () => {
             this.camera.lookAt(this.camera.target);
           }
@@ -45,7 +45,7 @@ import * as THREE from "three"
           round: 1,
           duration: duration,
           round: 100,
-          easing: "easeInOutExpo",
+          easing: "easeInOutCubic",
           update: () => {
             // console.log(this.camera._m)
             this.camera.setFocalLength(this.camera._m);
@@ -60,13 +60,22 @@ import * as THREE from "three"
   }
 
   const options = {
-    width: 1400,
-    height: 1000,
-    image: require("../img/1.png"),
+    // width: 1400,
+    // height: 1000,
+    image: require("../img/1.jpg"),
     isAddTagMode: true
   };
 
   window.pano = new Pano(options);
   window.THREE = THREE;
   window.anime = anime;
+  window.stopEventBubble = (event) => {   
+    var e=event || window.event;
+    console.log(e)
+   if (e && e.stopPropagation){       
+        e.stopPropagation();          
+       } else{     
+         e.cancelBubble=true;      
+     }  
+ }
 })();
