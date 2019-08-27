@@ -2,6 +2,7 @@
 class DataControl {
 
   constructor() {
+    this.canDelete = true
     this.types = []
     this.points = []
   }
@@ -13,9 +14,24 @@ class DataControl {
   appendDom(type, klass, parent, content = '') {
     let dom = document.createElement(type)
     dom.className = klass
-    dom.innerHTML = content
+    if (type == 'img') {
+      dom.src = content
+    } else {
+      dom.innerHTML = content
+    }
     parent.appendChild(dom)
     return dom
+  }
+
+  outPointsData() {
+    let dataStore = this.points.map(ele => {
+      return {
+        id: ele.dom.id,
+        innerHTML: ele.dom.innerHTML,
+        position: ele.pos3d.position
+      }
+    })
+    console.log(JSON.stringify(dataStore), dataStore)
   }
 
   updatePoints(pano) {
@@ -24,7 +40,9 @@ class DataControl {
     }
     this.points.forEach(ele => {
       ele.posScreen = this.getScreenPosition(ele.pos3d, pano)
-      if (!ele.dom) {
+      if (ele.id) {
+        this.addPreTag(ele, pano)
+      } else if (!ele.dom) {
         this.addNewTag(ele, pano)
       }
       if (ele.posScreen) {
@@ -39,24 +57,38 @@ class DataControl {
         ele.dom.style.display = 'none'
       }
       if (ele.status === 'bye') {
-        document.querySelector(`#${ele.dom.id}`).remove()
+        const byeDom = document.querySelector(`#${ele.dom.id}`)
+        if (!byeDom) {
+          return
+        }
+        byeDom.remove()
       }
     })
-    this.points = this.points.filter(ele => ele.status !== 'bye')
+    if (pano.frameCount % 4) {
+      this.points = this.points.filter(ele => ele.status !== 'bye')
+    }
   }
 
   addNewTag(ele, pano) {
     if (!pano.canControl) return
     ele.dom = document.createElement('div')
     ele.dom.className = 'pointWrap'
-    ele.dom.id = `tag-${this.points.length}`
+    ele.dom.id = `tag-${(this.points.length * Math.random() + '').replace('.', '')}`
+    ele.dom.style.display = 'none'
     ele.dom.addEventListener('mousedown', (ev = window.event) => {
       ev.preventDefault()
       pano.isControllingTag = true
     })
 
     let point = this.appendDom('div', 'point', ele.dom)
-    let line = this.appendDom('div', 'line', ele.dom)
+    let close = this.appendDom('img', 'close', ele.dom, require('../img/close.svg'))
+    close.addEventListener('click', (ev = window.event) => {
+      ev.preventDefault()
+      if (!this.canDelete) {
+        return
+      }
+      ele.status = 'bye'
+    })
     let typeSelect = this.appendDom('div', 'typeSelect', ele.dom)
 
     let selectItemType = this.appendDom('div', 'selectItem', typeSelect, '留言')
@@ -65,13 +97,27 @@ class DataControl {
       let contentWords = typeSelect
       contentWords.className = 'contentWords'
       let words = [
-        '小美：好壮观呀！',
-        '小杰：我家就在这里',
-        '小磊：太美了',
-        '小梦：我也想到这里来',
-        '小万：厉害了厉害了'
+        '好壮观呀！',
+        '我家就在这里',
+        '太美了',
+        '我也想到这里来',
+        '厉害了厉害了',
+        '我要去现场自拍',
+        '美不胜收！',
+        '昨天路过，天气很好~',
+        '阔以阔以'
       ]
-      contentWords.innerHTML = words[Math.floor(Math.random()* words.length)]
+      let avatars = [
+        require('../img/001.jpg'),
+        require('../img/002.jpg'),
+        require('../img/003.jpg'),
+        require('../img/004.jpg'),
+        require('../img/005.jpg'),
+        require('../img/006.jpg')
+      ]
+      contentWords.innerHTML = ''
+      this.appendDom('img', 'avatar', contentWords, avatars[Math.floor(Math.random() * avatars.length)])
+      this.appendDom('span', 'content', contentWords, words[Math.floor(Math.random() * words.length)])
     })
 
     let selectItemName = this.appendDom('div', 'selectItem', typeSelect, '地点名称')
@@ -123,13 +169,33 @@ class DataControl {
       `
       contentHref.innerHTML = Href
     })
-    
-    let selectItemCancel = this.appendDom('div', 'selectItem', typeSelect, '取消')
-    selectItemCancel.addEventListener('click', (ev = window.event) => {
-      ev.preventDefault()
-      ele.status = 'bye'
-    })
 
+    pano.op.appendChild(ele.dom)
+  }
+
+  addPreTag(ele, pano) {
+    ele.dom = document.createElement('div')
+    ele.dom.className = 'pointWrap'
+    ele.dom.id = ele.id
+    ele.id = null
+    ele.dom.style.display = 'none'
+    ele.dom.addEventListener('mousedown', (ev = window.event) => {
+      ev.preventDefault()
+      pano.isControllingTag = true
+    })
+    ele.dom.innerHTML = ele.innerHTML
+    let imgs = ele.dom.getElementsByTagName("img")
+    Array.from(imgs).map(e => {
+      if (e.className == 'close') {
+        e.addEventListener('click', (ev = window.event) => {
+          ev.preventDefault()
+          if (!this.canDelete) {
+            return
+          }
+          ele.status = 'bye'
+        })
+      }
+    })
     pano.op.appendChild(ele.dom)
   }
 
