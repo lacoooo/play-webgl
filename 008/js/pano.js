@@ -62,8 +62,8 @@ class PanoBase {
 
     async _preLoadBase() {
         await this.preLoad()
-        await this.loadImage(this.options.image)
-        this._initSphere()
+        let img = await this.loadImage(this.options.image)
+        this._initSphere(img)
         this._bindScale()
         this._bindRotate()
         this._bindTagEvents()
@@ -76,19 +76,17 @@ class PanoBase {
     }
 
     loadImage(imgUrl) {
+        // to do
         return new Promise((r) => {
-            let img = new Image
-            img.src = imgUrl
-            img.onload = () => {
-                this.image = imgUrl
-                r(imgUrl)
-            }
+            let img = new THREE.TextureLoader().load(this.options.image, () => {
+                r(img)
+            })
         })
     }
 
-    _initSphere() {
+    _initSphere(img) {
         const material = new THREE.MeshBasicMaterial(
-            { map: new THREE.TextureLoader().load(this.image) }
+            { map: img }
         )
         material.side = THREE.DoubleSide
         const geometry = new THREE.SphereGeometry(100, 30, 30)
@@ -103,7 +101,7 @@ class PanoBase {
             
             if (!this.canControl) return
             const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
-            if (newFov < 60 || newFov > 100) return
+            if (newFov < 70 || newFov > 160) return
             const m = this.camera._m + (newFov - this.options._fov) * 0.3
             this.camera.setFocalLength(m)
             this.options.fov = newFov
