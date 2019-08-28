@@ -43,6 +43,12 @@ function draw() {
   rect(0,0,width, height);
 }
 
+function keyPressed(params) {
+  if (keyCode == 83) {
+    save();
+  }
+}
+
 function windowResized(){
   resizeCanvas(size.w, size.h);
 }

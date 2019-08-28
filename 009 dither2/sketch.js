@@ -24,7 +24,7 @@ function setup() {
   console.log(cactiImg)
 }
 
-function draw() {  
+function draw() {
   // shader() sets the active shader with our shader
   shader(uniformsShader);
 
@@ -42,6 +42,7 @@ function draw() {
   // rect gives us some geometry on the screen
   rect(0,0,width, height);
 }
+
 
 function windowResized(){
   resizeCanvas(size.w, size.h);

@@ -1,4 +1,4 @@
-precision mediump float;
+precision lowp float;
 
 varying vec2 vTexCoord;
 
@@ -38,9 +38,9 @@ vec4 color(vec4 c, float m, float t) {
     c.g = 1.0;
   }
   if (c.b < m) {
-    c.b = 0.0;
+    c.g = 0.0;
   } else {
-    c.b = 1.0;
+    c.g = 1.0;
   }
   return vec4(c.r, c.g, c.b, 1.0);
 }
@@ -51,33 +51,35 @@ void main() {
   uv.y = 1.0 - uv.y;
   vec4 texo = texture2D(picture, uv);
 
-  // vec4 tex = vec4(vec3(ceil((texo.r + texo.g + texo.b) * mouseX) / 3.0 / mouseX), 1.0);
-  vec4 tex = texo;
+  float r = ceil(texo.r * mouseX) / mouseX;
+  float g = ceil(texo.g * mouseX) / mouseX;
+  float b = ceil(texo.b * mouseX) / mouseX;
+  vec4 tex = vec4(r, g, b, 1.0);
   float x = cell(uv.x, 3.0);
   float y = cell(uv.y, 3.0);
   if (x == 0.0) {
     if (y == 0.0) {
-      tex = color(tex, dither[0][0], 1.0);
+      tex = color(tex, dither2[0][0], 1.0);
     } else if (y == 1.0) {
-      tex = color(tex, dither[0][1], 2.0);
+      tex = color(tex, dither2[0][1], 2.0);
     } else if (y == 2.0) {
-      tex = color(tex, dither[0][2], 3.0);
+      tex = color(tex, dither2[0][2], 3.0);
     }
   } else if (x == 1.0) {
     if (y == 0.0) {
-      tex = color(tex, dither[1][0], 4.0);
+      tex = color(tex, dither2[1][0], 4.0);
     } else if (y == 1.0) {
-      tex = color(tex, dither[1][1], 5.0);
+      tex = color(tex, dither2[1][1], 5.0);
     } else if (y == 2.0) {
-      tex = color(tex, dither[1][2], 6.0);
+      tex = color(tex, dither2[1][2], 6.0);
     }
   } else if (x == 2.0) {
     if (y == 0.0) {
-      tex = color(tex, dither[2][0], 7.0);
+      tex = color(tex, dither2[2][0], 7.0);
     } else if (y == 1.0) {
-      tex = color(tex, dither[2][1], 8.0);
+      tex = color(tex, dither2[2][1], 8.0);
     } else if (y == 2.0) {
-      tex = color(tex, dither[2][2], 9.0);
+      tex = color(tex, dither2[2][2], 9.0);
     }
   }
 
