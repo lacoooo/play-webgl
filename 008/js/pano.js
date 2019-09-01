@@ -1,14 +1,7 @@
 import * as THREE from 'three'
 import dataControl from './dataControl.js'
 
-let startX = 0,
-    startY = 0,
-    indexX = 0,
-    indexY = 0
-
 let raycaster = new THREE.Raycaster()
-
-const HALF_PI = Math.PI * 0.5
 
 class PanoBase {
 
@@ -28,6 +21,8 @@ class PanoBase {
             _fov: 80
         }
         this.DTC = dataControl
+        this.canControl = false
+        this.isControllingTag = false
         if (!this.container) {
             throw 'no container'
         }
@@ -52,7 +47,7 @@ class PanoBase {
         this.scene.background = new THREE.Color('#000000')
         this.camera = new THREE.PerspectiveCamera(this.options._fov, this.options.width / this.options.height, 1, 10000)
         this.camera._m = this.camera.getFocalLength()
-        this.camera.target = new THREE.Vector3(0, 0, 1)
+        this.camera.target = new THREE.Vector3(1, 0, 0)
         this.camera.lookAt(this.camera.target)
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -67,8 +62,8 @@ class PanoBase {
 
     async _preLoadBase() {
         await this.preLoad()
-        await this.loadImage(this.options.image)
-        this._initSphere()
+        let img = await this.loadImage(this.options.image)
+        this._initSphere(img)
         this._bindScale()
         this._bindRotate()
         this._bindTagEvents()
@@ -81,19 +76,17 @@ class PanoBase {
     }
 
     loadImage(imgUrl) {
+        // to do
         return new Promise((r) => {
-            let img = new Image
-            img.src = imgUrl
-            img.onload = () => {
-                this.image = imgUrl
-                r(imgUrl)
-            }
+            let img = new THREE.TextureLoader().load(this.options.image, () => {
+                r(img)
+            })
         })
     }
 
-    _initSphere() {
+    _initSphere(img) {
         const material = new THREE.MeshBasicMaterial(
-            { map: new THREE.TextureLoader().load(this.image) }
+            { map: img }
         )
         material.side = THREE.DoubleSide
         const geometry = new THREE.SphereGeometry(100, 30, 30)
@@ -105,8 +98,10 @@ class PanoBase {
     _bindScale() {
         this.container.addEventListener('mousewheel', (ev = window.event) => {
             ev.preventDefault()
+            
+            if (!this.canControl) return
             const newFov = Math.floor(this.options.fov + ev.wheelDelta * 0.05)
-            if (newFov < 60 || newFov > 90) return
+            if (newFov < 70 || newFov > 160) return
             const m = this.camera._m + (newFov - this.options._fov) * 0.3
             this.camera.setFocalLength(m)
             this.options.fov = newFov
@@ -114,11 +109,19 @@ class PanoBase {
     }
 
     _bindRotate() {
-        let newRX = 0
-        let newRY = 0
+        let newRX = 0,
+        newRY = 0,
+        startX = 0,
+        startY = 0,
+        indexX = 0,
+        indexY = 0,
+        currentX = 0,
+        currentY = 0
 
-        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
+        this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
+            
+            if (!this.canControl) return
             this.isUserInteracting = true
             startX = ev.clientX
             startY = ev.clientY
@@ -127,36 +130,40 @@ class PanoBase {
             this.camera.target.prevZ = this.camera.target.z
         })
 
-        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
+        this.container.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
+            
+            if (!this.canControl) return
             if (this.isUserInteracting) {
-                const currentX = ev.clientX,
-                      currentY = ev.clientY
-                newRX = currentX - startX
+                if (this.isControllingTag) return
+                currentX = ev.clientX,
+                currentY = ev.clientY
+                newRX = startX - currentX
                 newRY = currentY - startY
+
+                const speed = 0.003
 
                 if (indexY + newRY > 520) newRY = 520 - indexY
                 else if (indexY + newRY < -520) newRY = -520 - indexY
 
-                const xScore = (newRX + indexX) * 0.003
-                const yScore = (newRY + indexY) * 0.003
+                const xScore = (newRX + indexX) * speed
+                const yScore = (newRY + indexY) * speed
                 const y = Math.sin(yScore) * 100
-                const x = Math.sin(xScore) * 100
+                const x = Math.cos(xScore) * 100
                 * (Math.abs(Math.cos(yScore)))
-                const z = Math.cos(xScore) * 100
+                const z = Math.sin(xScore) * 100
                 * (Math.abs(Math.cos(yScore)))
                 this.camera.target.x = x
-                if (true) {
-                    this.camera.target.y = y
-                }
+                this.camera.target.y = y
                 this.camera.target.z = z
                 this.camera.lookAt(this.camera.target)
-                this.DTC.updatePoints(this)
             }
         })
 
-        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
+        this.container.addEventListener('mouseup', (ev = window.event) => {
             ev.preventDefault()
+            
+            if (!this.canControl) return
             this.isUserInteracting = false
             indexX += newRX
             indexY += newRY
@@ -164,37 +171,49 @@ class PanoBase {
             newRY = 0
         })
 
-        this.renderer.domElement.addEventListener('mouseout', (ev = window.event) => {
+        this.container.addEventListener('mouseout', (ev = window.event) => {
             ev.preventDefault()
-            this.isUserInteracting = false
+            
+            if (!this.canControl) return
+            // this.isUserInteracting = false
+            this.isControllingTag = false
+            console.log('mouseout')
         })
 
     }
 
     _bindTagEvents() {
-        if (!this.options.isAddTagMode) {
-            return
-        }
+        if (!this.options.isAddTagMode) return
         const mouse = new THREE.Vector2()
 
         let sameX, sameY
 
-        this.renderer.domElement.addEventListener('mousemove', (ev = window.event) => {
+        this.container.addEventListener('mousedown', (ev = window.event) => {
             ev.preventDefault()
-            mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
-            mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
-        })
-
-        this.renderer.domElement.addEventListener('mousedown', (ev = window.event) => {
-            ev.preventDefault()
+            
+            if (!this.canControl) return
             sameX = ev.clientX
             sameY = ev.clientY
         })
 
-        this.renderer.domElement.addEventListener('mouseup', (ev = window.event) => {
+        this.container.addEventListener('mousemove', (ev = window.event) => {
             ev.preventDefault()
+            
+            if (!this.canControl) return
+            mouse.x = ( ev.clientX / this.options.width ) * 2 - 1
+            mouse.y = - ( ev.clientY / this.options.height ) * 2 + 1
+        })
+
+        this.container.addEventListener('mouseup', (ev = window.event) => {
+            ev.preventDefault()
+            
+            if (!this.canControl) return
             // 如果down和up不是同一个位置，则此次交互不是为了添加tag
             if (sameX != ev.clientX || sameY != ev.clientY) {
+                return
+            }
+            if (this.isControllingTag) {
+                this.isControllingTag = false
                 return
             }
             raycaster.setFromCamera( mouse, this.camera )
@@ -204,7 +223,7 @@ class PanoBase {
 
                 const point = intersects[0].point
                 const material = new THREE.MeshBasicMaterial({color: 0xaaafff})
-                const geometry = new THREE.SphereGeometry(0.1, 2, 2)
+                const geometry = new THREE.SphereGeometry(0.01, 2, 2)
                 const pos = new THREE.Mesh( geometry, material )
                 pos.position.x = point.x
                 pos.position.y = point.y

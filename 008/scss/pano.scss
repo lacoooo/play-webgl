@@ -1,12 +1,10 @@
 #pano {
     overflow: hidden;
     position: relative;
-    canvas {
-        position: relative;
-        z-index: 0;
-    }
+    // canvas {
+    //     position: relative;
+    // }
     #op {
-        z-index: 1;
         position: absolute;
         top: 0;
         left: 0;
@@ -16,12 +14,112 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 20px;
-            height: 20px;
-            transform: translate3d(-50%, -50%, 0);
-            border-radius: 100px;
-            background: #fff;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            &:hover {
+                > .close {
+                    display: block;
+                }
+            }
+            > .point {
+                width: 6px;
+                height: 6px;
+                border-radius: 100px;
+                background: #fff;
+                position: absolute;
+                left: 0;
+                right: 0;
+                transform: translate3d(-50%, -50%, 0);
+            }
+            > .close {
+                position: absolute;
+                right: 0px;
+                top: -20px;
+                z-index: 100;
+                width: 20px;
+                height: 20px;
+                cursor: pointer;
+                display: none;
+            }
+            > .typeSelect {
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                transform: translate3d(-10px, 0, 0);
+                border-radius: 6px;
+                margin-top: -10px;
+                margin-left: 30px;
+                padding: 6px;
+                .selectItem {
+                    font-size: 1rem;
+                    text-align: center;
+                    // background: #fff;
+                    line-height: 2;
+                    padding: 0 10px;
+                    color: rgba(0,0,0,0.6);
+                    white-space: nowrap;
+                    cursor: pointer;
+                    &:hover {
+                        color: rgba(0,0,0,1);
+                    }
+                }
+            }
+            > .contentWords,
+              .contentName,
+              .contentHref,
+              .contentArticle,
+              .contentVideo {
+                background: rgba(255, 255, 255, 0.8);
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+                padding: 6px 12px;
+                margin-left: 30px;
+                margin-top: -10px;
+                transform: translate3d(-10px, 0, 0);
+                border-radius: 6px;
+                min-width: 40px;
+                color: rgba(0,0,0,0.8);
+            }
+            > .contentWords,
+              .contentName,
+              .contentHref {
+                white-space: nowrap;
+            }
+            > .contentWords {
+                display: flex;
+                align-items: center;
+                .avatar {
+                    height: 30px;
+                    border-radius: 100px;
+                }
+                span {
+                    margin-left: 14px;
+                }
+            }
+            > .contentHref {
+                text-align: center;
+            }
+            > .contentArticle,
+              .contentVideo {
+                img {
+                    width: 100%;
+                }
+                video {
+                    width: 100%;
+                }
+                width: 300px;
+                font-size: .9rem;
+                line-height: 1.7;
+                padding: 10px;
+            }
         }
     }
+}
+
+.intro {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 20px;
+    width: 300px;
+    background: rgba(255,255,255,.8);
+    border-radius: 6px;
+    font-size: .9rem;
+    line-height: 1.8;
 }
