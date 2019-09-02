@@ -63,6 +63,7 @@ class PanoBase {
     async _preLoadBase() {
         await this.preLoad()
         let img = await this.loadImage(this.options.image)
+        this.op.innerHTML = ''
         this._initSphere(img)
         this._bindScale()
         this._bindRotate()

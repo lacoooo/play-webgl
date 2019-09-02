@@ -10,6 +10,15 @@
         left: 0;
         width: 100%;
         height: 100%;
+        .loading {
+            width: 100%;
+            height: 100%;
+            line-height: 100vh;
+            text-align: center;
+            font-size: 30px;
+            color: #fff;
+            letter-spacing: 2px;
+        }
         .pointWrap {
             position: absolute;
             top: 0;
