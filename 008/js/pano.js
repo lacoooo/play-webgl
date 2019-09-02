@@ -150,9 +150,9 @@ class PanoBase {
                 const yScore = (newRY + indexY) * speed
                 const y = Math.sin(yScore) * 100
                 const x = Math.cos(xScore) * 100
-                * (1 - Math.abs(Math.sin(yScore)))
+                * (Math.abs(Math.cos(yScore)))
                 const z = Math.sin(xScore) * 100
-                * (1 - Math.abs(Math.sin(yScore)))
+                * (Math.abs(Math.cos(yScore)))
                 this.camera.target.x = x
                 this.camera.target.y = y
                 this.camera.target.z = z
