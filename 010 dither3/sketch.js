@@ -4,7 +4,7 @@
 
 // a shader variable
 let uniformsShader;
-let cactiImg;
+// let cactiImg;
 
 let dither4 = new Float32Array([0.0,  48.0, 12.0, 60.0, 3.0,  51.0, 15.0, 63.0,
   32.0, 16.0, 44.0, 28.0, 35.0, 19.0, 47.0, 31.0,
@@ -18,19 +18,24 @@ let dither4 = new Float32Array([0.0,  48.0, 12.0, 60.0, 3.0,  51.0, 15.0, 63.0,
 function preload(){
   // load the shader
   uniformsShader = loadShader('uniform.vert', 'uniform.frag');
-  cactiImg = loadImage('1.jpg');
+  // cactiImg = loadImage('1.jpg');
 }
 
 function setup() {
   size = 500
   size = {
-    w: size || cactiImg.width,
-    h: size || cactiImg.height
+    w: window.innerWidth,
+    h: window.innerHeight
   }
   // shaders require WEBGL mode to work
   createCanvas(size.w, size.h, WEBGL);
   noStroke();
-  console.log(cactiImg)
+  // console.log(cactiImg)
+  cam = createCapture(VIDEO);
+  cam.size(windowWidth, windowHeight);
+
+  // hide the html element that createCapture adds to the screen
+  cam.hide();
 }
 
 function draw() {  
@@ -46,7 +51,8 @@ function draw() {
   // setUniform can also send an image to a shader
   // 'picture' is the name of the variable in our shader
   // cactiImg, is a normal p5 image object
-  uniformsShader.setUniform('picture', cactiImg);
+  uniformsShader.setUniform('picture', cam);
+  // uniformsShader.setUniform('picture', cactiImg);
 
   uniformsShader.setUniform('dither4', dither4);
 
