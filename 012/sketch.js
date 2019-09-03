@@ -10,7 +10,6 @@ let insideRadius = 100;
 
 let data = []
 
-
 window.preload = () => {
   // load the shader
   theShader = loadShader('uniform.vert','uniform.frag');
@@ -20,7 +19,6 @@ window.setup = () => {
   // shaders require WEBGL mode to work
   createCanvas(900, 600, WEBGL);
   noStroke();
-  // stroke(1)
 
   // initialize the createGraphics layers
   shaderTexture = createGraphics(1200, 800, WEBGL);
@@ -30,12 +28,12 @@ window.setup = () => {
 
    x = -50;
    y = 0;
-  for (var i = 0; i < 20; i ++) {
+  for (var i = 0; i < 10; i ++) {
     data.push({
-     x: random(-20, 20),
-     y: random(-20, 20),
-     z: random(-20, 20),
-     s: random(100, 250)
+     x: random(-100, 100),
+     y: random(-100, 100),
+     z: random(-100, 100),
+     s: random(250)
     })
   }
 }
@@ -51,24 +49,21 @@ window.draw = () => {
   // passing the shaderTexture layer geometry to render on
   shaderTexture.rect(0,0,width,height);
 
-  background('rgba(210,210,210,1)');
+  background('rgba(200,200,200,.2)');
 
   // pass the shader as a texture
   // anything drawn after this will have this texture.
   texture(shaderTexture);
 
-  // push();
+  push();
   rotateZ(theta * mouseX * 0.0001);
   rotateX(theta * mouseX * 0.0001);
   rotateY(theta * mouseX * 0.0001);  
   theta += 0.05;
-  for (var i = 0; i < 20; i ++) {
+  for (var i = 0; i < 10; i ++) {
     var t = data[i]
-    rotateZ(i * 0.0001);
-    rotateX(i * 0.0001);
-    rotateY(i * 0.0001);  
     translate(t.x, t.y, t.z)
     box(t.s)
   }
-  // pop();
+  pop();
 }
