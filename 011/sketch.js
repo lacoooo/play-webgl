@@ -8,6 +8,7 @@ let y;
 let outsideRadius = 200;
 let insideRadius = 100;
 
+let data = []
 
 window.preload = () => {
   // load the shader
@@ -16,7 +17,7 @@ window.preload = () => {
 
 window.setup = () => {
   // shaders require WEBGL mode to work
-  createCanvas(710, 400, WEBGL);
+  createCanvas(900, 600, WEBGL);
   noStroke();
 
   // initialize the createGraphics layers
@@ -27,6 +28,14 @@ window.setup = () => {
 
    x = -50;
    y = 0;
+  for (var i = 0; i < 50; i ++) {
+    data.push({
+     x: random(-100, 100),
+     y: random(-100, 100),
+     z: random(-100, 100),
+     s: random(250)
+    })
+  }
 }
 
 window.draw = () => {
@@ -37,7 +46,6 @@ window.draw = () => {
   // here we're using setUniform() to send our uniform values to the shader
   theShader.setUniform("resolution", [width, height]);
   theShader.setUniform("time", millis() / 1000.0);
-  theShader.setUniform("mouse", [mouseX, map(mouseY, 0, height, height, 0)]);
   // passing the shaderTexture layer geometry to render on
   shaderTexture.rect(0,0,width,height);
 
@@ -47,18 +55,15 @@ window.draw = () => {
   // anything drawn after this will have this texture.
   texture(shaderTexture);
 
-  translate(-150, 0, 0);
   push();
   rotateZ(theta * mouseX * 0.0001);
   rotateX(theta * mouseX * 0.0001);
   rotateY(theta * mouseX * 0.0001);  
   theta += 0.05;
-  sphere(125);
+  for (var i = 0; i < 50; i ++) {
+    var t = data[i]
+    translate(t.x, t.y, t.z)
+    box(t.s)
+  }
   pop();
-
-  /* when you put a texture or shader on an ellipse it is rendered in 3d,
-     so a fifth parameter that controls the # vertices in it becomes necessary,
-     or else you'll have sharp corners. setting it to 100 is smooth. */
-  let ellipseFidelity = int(map(mouseX, 0, width, 8, 100));
-  ellipse(260, 0, 200, 200, ellipseFidelity);
 }
