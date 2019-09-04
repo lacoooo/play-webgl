@@ -64,11 +64,17 @@ window.draw = () => {
   theta += 0.05
   for (var i = 0; i < 100; i++) {
     var t = data[i]
-    // rotateZ(i * 0.0001);
+    // rotateZ(i * 0.0001)
     // rotateX(i * 0.0001);
     // rotateY(i * 0.0001);
     translate(t.x, 0, t.z)
-    box(t.w, t.h, t.d)
+    cylinder(t.w / 3, t.h * 2)
   }
   // pop();
+}
+
+window.keyPressed = params => {
+  if (window.keyCode == 83) {
+    save()
+  }
 }
