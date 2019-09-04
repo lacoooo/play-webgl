@@ -23,8 +23,11 @@ float noise(vec2 p){
 
 void main (void) {
     vec2 uv = vTexCoord;
-    float g = rand(uv);
-    // vec4 t = vec4(uv.x - uv.y, uv.x + uv.y, uv.x * uv.y, 0.0);
-    vec4 t = vec4(g, g, g, uv.y);
+    float c = rand(uv * 1.5);
+    vec4 t = vec4(c, c, c, uv.y);
+	if (uv.y * rand(uv * 1.5) > 0.3) {
+		c = 0.0;
+	}
+	t = vec4(c, c, c, uv.y);
     gl_FragColor = t;
 }
