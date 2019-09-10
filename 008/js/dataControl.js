@@ -1,6 +1,4 @@
-
 class DataControl {
-
   constructor() {
     this.canDelete = true
     this.types = []
@@ -73,7 +71,10 @@ class DataControl {
     if (!pano.canControl) return
     ele.dom = document.createElement('div')
     ele.dom.className = 'pointWrap'
-    ele.dom.id = `tag-${(this.points.length * Math.random() + '').replace('.', '')}`
+    ele.dom.id = `tag-${(this.points.length * Math.random() + '').replace(
+      '.',
+      ''
+    )}`
     ele.dom.style.display = 'none'
     ele.dom.addEventListener('mousedown', (ev = window.event) => {
       ev.preventDefault()
@@ -81,7 +82,12 @@ class DataControl {
     })
 
     let point = this.appendDom('div', 'point', ele.dom)
-    let close = this.appendDom('img', 'close', ele.dom, require('../img/close.svg'))
+    let close = this.appendDom(
+      'img',
+      'close',
+      ele.dom,
+      require('../img/close.svg')
+    )
     close.addEventListener('click', (ev = window.event) => {
       ev.preventDefault()
       if (!this.canDelete) {
@@ -116,22 +122,49 @@ class DataControl {
         require('../img/006.jpg')
       ]
       contentWords.innerHTML = ''
-      this.appendDom('img', 'avatar', contentWords, avatars[Math.floor(Math.random() * avatars.length)])
-      this.appendDom('span', 'content', contentWords, words[Math.floor(Math.random() * words.length)])
+      this.appendDom(
+        'img',
+        'avatar',
+        contentWords,
+        avatars[Math.floor(Math.random() * avatars.length)]
+      )
+      this.appendDom(
+        'span',
+        'content',
+        contentWords,
+        words[Math.floor(Math.random() * words.length)]
+      )
     })
 
-    let selectItemName = this.appendDom('div', 'selectItem', typeSelect, '地点名称')
+    let selectItemName = this.appendDom(
+      'div',
+      'selectItem',
+      typeSelect,
+      '地点名称'
+    )
     selectItemName.addEventListener('click', (ev = window.event) => {
       ev.preventDefault()
       let contentName = typeSelect
       contentName.className = 'contentName'
       let names = [
-        '马山', '海岸城', '金匮公园', '人民医院', '崇安寺', '鼋头渚', '江南大学', '雪浪山'
+        '马山',
+        '海岸城',
+        '金匮公园',
+        '人民医院',
+        '崇安寺',
+        '鼋头渚',
+        '江南大学',
+        '雪浪山'
       ]
-      contentName.innerHTML = names[Math.floor(Math.random()* names.length)]
+      contentName.innerHTML = names[Math.floor(Math.random() * names.length)]
     })
 
-    let selectItemArticle = this.appendDom('div', 'selectItem', typeSelect, '图文介绍')
+    let selectItemArticle = this.appendDom(
+      'div',
+      'selectItem',
+      typeSelect,
+      '图文介绍'
+    )
     selectItemArticle.addEventListener('click', (ev = window.event) => {
       ev.preventDefault()
       let contentArticle = typeSelect
@@ -145,7 +178,12 @@ class DataControl {
       contentArticle.innerHTML = article
     })
 
-    let selectItemVideo = this.appendDom('div', 'selectItem', typeSelect, '视频介绍')
+    let selectItemVideo = this.appendDom(
+      'div',
+      'selectItem',
+      typeSelect,
+      '视频介绍'
+    )
     selectItemVideo.addEventListener('click', (ev = window.event) => {
       ev.preventDefault()
       let contentVideo = typeSelect
@@ -159,13 +197,31 @@ class DataControl {
       contentVideo.innerHTML = video
     })
 
-    let selectItemHref = this.appendDom('div', 'selectItem', typeSelect, '跳转链接')
+    let selectItemHref = this.appendDom(
+      'div',
+      'selectItem',
+      typeSelect,
+      '跳转链接'
+    )
     selectItemHref.addEventListener('click', (ev = window.event) => {
       ev.preventDefault()
       let contentHref = typeSelect
       contentHref.className = 'contentHref'
+      let v = 1
+      if (location.href.endsWith(1)) {
+        v = 2
+      } else if (location.href.endsWith(2)) {
+        v = 3
+      } else if (location.href.endsWith(3)) {
+        v = 1
+      } else {
+        v = 1
+      }
       let Href = `
-        <a href='https://baike.baidu.com/item/%E6%97%A0%E9%94%A1/135983?fr=aladdin' target='_blank'>无锡</a>
+        <a href='/?v=${v}'>
+        <img src="${require('../img/position.svg')}" />
+        到这里看看
+        </a>
       `
       contentHref.innerHTML = Href
     })
@@ -184,7 +240,7 @@ class DataControl {
       pano.isControllingTag = true
     })
     ele.dom.innerHTML = ele.innerHTML
-    let imgs = ele.dom.getElementsByTagName("img")
+    let imgs = ele.dom.getElementsByTagName('img')
     Array.from(imgs).map(e => {
       if (e.className == 'close') {
         e.addEventListener('click', (ev = window.event) => {
@@ -203,28 +259,26 @@ class DataControl {
     // console.log(THREE)
     const distCamera = vec.position.distanceTo(pano.camera.target)
     const distCenter = vec.position.distanceTo(new THREE.Vector3(0, 0, 0))
-    if (distCamera * .8 > distCenter) {
-        return false
+    if (distCamera * 0.8 > distCenter) {
+      return false
     }
     let pos = new THREE.Vector3()
     pos = pos.setFromMatrixPosition(vec.matrixWorld)
     pos.project(pano.camera)
-    
+
     let widthHalf = pano.options.width / 2
     let heightHalf = pano.options.height / 2
-    
-    pos.x = (pos.x * widthHalf) + widthHalf
-    pos.y = - (pos.y * heightHalf) + heightHalf
+
+    pos.x = pos.x * widthHalf + widthHalf
+    pos.y = -(pos.y * heightHalf) + heightHalf
     pos.z = 0
     const width = pano.options.width
     const height = pano.options.height
-    if (pos.x > -width && pos.x < width && 
-        pos.y > -height && pos.y < height) {
-        return pos
+    if (pos.x > -width && pos.x < width && pos.y > -height && pos.y < height) {
+      return pos
     }
     return false
-}
-
+  }
 }
 
 export default new DataControl()

@@ -89,7 +89,7 @@ class PanoBase {
   _initSphere(img) {
     const material = new THREE.MeshBasicMaterial({ map: img })
     material.side = THREE.DoubleSide
-    const geometry = new THREE.SphereGeometry(100, 30, 30)
+    const geometry = new THREE.SphereGeometry(100, 30, 60)
     this.sphere = new THREE.Mesh(geometry, material)
     this.scene.add(this.sphere)
     this.camera.position.set(0, 0, 0)
