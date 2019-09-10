@@ -1,13 +1,12 @@
 // our vertex data
 attribute vec3 aPosition;
-attribute vec2 aTexCoord;
 
 // we need our texcoords again
 varying vec2 vTexCoord;
 
 void main() {
   // copy the texcoords
-  vTexCoord = aTexCoord;
+  vTexCoord = aPosition.xy;
 
   // copy the position data into a vec4, using 1.0 as the w component
   vec4 positionVec4 = vec4(aPosition, 1.0);

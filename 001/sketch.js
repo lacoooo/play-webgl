@@ -9,7 +9,7 @@ let cactiImg;
 function preload(){
   // load the shader
   uniformsShader = loadShader('uniform.vert', 'uniform.frag');
-  cactiImg = loadImage('cacti.jpg');
+  cactiImg = loadImage('1.jpg');
 }
 
 function setup() {

@@ -30,7 +30,7 @@ void main() {
 
   vec2 distort = vec2(noise(uv * (10.0 - time)), 0.0);
 
-  vec4 tex = texture2D(picture, uv + distort);
+  vec4 tex = texture2D(picture, uv);
 
   gl_FragColor = tex;
 }
