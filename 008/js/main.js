@@ -27,8 +27,10 @@ import * as THREE from 'three'
           v = 3
         } else if (location.href.endsWith(3)) {
           v = 1
+        } else if (location.href.endsWith(4)) {
+          v = 4
         } else {
-          v = 1
+          v = 2
         }
         anime({
           targets: this.camera.target,
@@ -133,6 +135,16 @@ import * as THREE from 'three'
                     y: -52.163975515509016,
                     z: 16.6580499474189
                   }
+                },
+                {
+                  id: 'tag-245840604937976',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentHref">\n        <a href="/?v=4">\n        <img src="/position.cee5a8aa.svg">\n        到这里看看\n        </a>\n      </div>',
+                  position: {
+                    x: 15.829699591835825,
+                    y: -69.18775739360417,
+                    z: -69.99906863707287
+                  }
                 }
               ]
             } else if (v == 2) {
@@ -236,6 +248,16 @@ import * as THREE from 'three'
                     y: -13.862290245132849,
                     z: -0.6441491243997935
                   }
+                },
+                {
+                  id: 'tag-60568675121135405',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentHref">\n        <a href="/?v=4">\n        <img src="/position.cee5a8aa.svg">\n        到这里看看\n        </a>\n      </div>',
+                  position: {
+                    x: 68.18726189445199,
+                    y: -35.570167641085526,
+                    z: 63.167800091718355
+                  }
                 }
               ]
             } else if (v == 3) {
@@ -319,6 +341,69 @@ import * as THREE from 'three'
                     y: -8.340783293801836,
                     z: -17.520439147257065
                   }
+                },
+                {
+                  id: 'tag-21400941624839067',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentHref">\n        <a href="/?v=4">\n        <img src="/position.cee5a8aa.svg">\n        到这里看看\n        </a>\n      </div>',
+                  position: {
+                    x: 69.29118704436783,
+                    y: -39.91457749500512,
+                    z: -59.29098088567974
+                  }
+                }
+              ]
+            } else if (v == 4) {
+              t = [
+                {
+                  id: 'tag-02774861790200138',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentWords"><img class="avatar" src="/005.27042a0e.jpg"><span class="content">阔以阔以</span></div>',
+                  position: {
+                    x: -97.7013506727972,
+                    y: 2.7032606895346776,
+                    z: 20.91238920664734
+                  }
+                },
+                {
+                  id: 'tag-12346798972930957',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentName">鼋头渚</div>',
+                  position: {
+                    x: 59.28404938043631,
+                    y: 12.330735850547356,
+                    z: -78.87994348953953
+                  }
+                },
+                {
+                  id: 'tag-01217599110871519',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentArticle">\n        <img class="thumb" src="/thumb.cc1e80e9.jpg">\n        <div class="detail">\n        马山镇是1992年10月国务院批准成立的国家级旅游度假区，地处无锡西南美丽的马山半岛，总规划面积65平方公里，地域分布在太湖十八湾（12平方公里）、马圩圩区（20平方公里）、马迹山岛（33平方公里），下辖灵山景区管理处、生命科学园区管理处、吴都阖闾城管理处三个管理处和古竹、群丰、嶂青、西村、和平、万丰、栖云、耿湾、阖闾、湖山、峰影、乐山、迎晖13个社区，常住人口3.9万。\n        </div>\n      </div>',
+                  position: {
+                    x: 84.02157575194207,
+                    y: 19.645897285828557,
+                    z: -49.45040394933157
+                  }
+                },
+                {
+                  id: 'tag-1401892046756375',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentVideo">\n        <video class="thumb" controls="" src="/1.e4aec935.mp4"></video>\n        <div class="detail">\n        无锡小笼包，当地人又称小笼馒头，以皮薄卤多而誉遍沪、宁、杭一带，是江苏无锡地方传统名点，已有百年历史。\n        </div>\n      </div>',
+                  position: {
+                    x: -49.40104026605726,
+                    y: 12.118895003413183,
+                    z: 86.0340617915542
+                  }
+                },
+                {
+                  id: 'tag-502245521990757',
+                  innerHTML:
+                    '<div class="point"></div><img class="close" src="/close.24fb46be.svg"><div class="contentWords"><img class="avatar" src="/003.b212319e.jpg"><span class="content">昨天路过，天气很好~</span></div>',
+                  position: {
+                    x: 99.22466227226082,
+                    y: -2.50330401088032,
+                    z: 6.753159493539654
+                  }
                 }
               ]
             } else {
@@ -376,15 +461,20 @@ import * as THREE from 'three'
   const imgs = [
     require(`../img/1.jpg`),
     require(`../img/2.jpg`),
-    require(`../img/3.jpg`)
+    require(`../img/3.jpg`),
+    require(`../img/4.jpg`)
   ]
   let currentImg = imgs[0]
   if (location.href.endsWith('1')) {
     currentImg = imgs[0]
   } else if (location.href.endsWith('2')) {
     currentImg = imgs[1]
-  } else {
+  } else if (location.href.endsWith('3')) {
     currentImg = imgs[2]
+  } else if (location.href.endsWith('4')) {
+    currentImg = imgs[3]
+  } else {
+    currentImg = imgs[0]
   }
   const options = {
     // width: 1400,

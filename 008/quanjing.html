@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>全景列表</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      .list {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        background: url('123.jpg') no-repeat;
+        background-size: cover;
+        background-position: center;
+      }
+      .title {
+        font-size: 2rem;
+        line-height: 3;
+      }
+      .quanjing {
+        font-size: 1.3rem;
+        line-height: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="list">
+      <div class="title">
+        全景DEMO列表
+      </div>
+      <div class="quanjing">
+        <a href="/?v=1">点此查看全景 1（天空）</a>
+      </div>
+      <div class="quanjing">
+        <a href="/?v=2">点此查看全景 2（天空）</a>
+      </div>
+      <div class="quanjing">
+        <a href="/?v=3">点此查看全景 3（天空）</a>
+      </div>
+      <div class="quanjing">
+        <a href="/?v=4">点此查看全景 4（地面）</a>
+      </div>
+    </div>
+  </body>
+</html>
