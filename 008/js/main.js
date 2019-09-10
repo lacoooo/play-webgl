@@ -15,7 +15,10 @@ import * as THREE from 'three'
       this.camera.position.y = 99
       const fovm = this.camera._m
       this.camera._m = 5
-      const duration = 4000
+      const duration = 3000
+      this.camera.setFocalLength(this.camera._m)
+      this.camera.lookAt(this.camera.target)
+      this.renderer.render(this.scene, this.camera)
       setTimeout(() => {
         anime({
           targets: this.camera.target,

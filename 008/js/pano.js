@@ -92,7 +92,7 @@ class PanoBase {
     const geometry = new THREE.SphereGeometry(100, 30, 30)
     this.sphere = new THREE.Mesh(geometry, material)
     this.scene.add(this.sphere)
-    this.camera.position.set(0, 99, 0)
+    this.camera.position.set(0, 0, 0)
   }
 
   _bindScale() {
@@ -231,8 +231,6 @@ class PanoBase {
 
   _setupBase() {
     this.setup()
-    this.camera.setFocalLength(this.camera._m)
-    this.camera.lookAt(this.camera.target)
     this.renderer.render(this.scene, this.camera)
   }
 
@@ -244,8 +242,6 @@ class PanoBase {
     instance = this || instance
     // this.camera.matrixWorldNeedsUpdate = true
     this.DTC.updatePoints(this)
-    this.camera.setFocalLength(this.camera._m)
-    this.camera.lookAt(this.camera.target)
     instance.renderer.render(instance.scene, instance.camera)
     if (instance.__proto__.loop == instance.__proto__.__proto__.loop) {
       if (instance.frameCount === 0) {
