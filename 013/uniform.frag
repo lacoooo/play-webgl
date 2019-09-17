@@ -11,7 +11,7 @@ vec3 pow (vec3 color, float num) {
 }
 
 float rand(vec2 n) { 
-	return fract(sin( dot(n, vec2(12.9898, 4.1414)) ) * 43758.5453);
+	return fract(sin( dot(n, vec2(10002.9898, 4.1414)) ) * 400008.5453);
 }
 
 float noise(vec2 p){
@@ -31,10 +31,10 @@ void main() {
   vec2 mos = u_mouse / u_resolution;
   vec3 color = vec3(0.0);
   float dist = distance(pos, mos);
-  float dist2 = distance(pos, mos * vec2(0.4, 0.4));
-  float dist3 = distance(pos, mos * vec2(0.2, 0.6));
-  float distAll = pow(noise(vec2(dist / dist2 * 10.0, dist3 * 10.0 * noise(pos * 5.0))), 2.);
-  vec3 colorLight = vec3((distAll * (u_time * 120.)) * .2);
+  float dist2 = distance(pos, mos / vec2(0.4, 0.4));
+  float dist3 = distance(pos, mos / vec2(0.2, 0.6));
+  float distAll = pow(noise(vec2(dist / dist2 * 10.0, dist3 * 10.0)), 2.);
+  vec3 colorLight = vec3((distAll * (u_time * 120.)) * .1);
   color = 1.5 - (color + colorLight
   * rand(pos)
   );
