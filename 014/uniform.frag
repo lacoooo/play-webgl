@@ -27,19 +27,7 @@ float noise(vec2 p){
     vec2 pos=gl_FragCoord.xy/u_resolution;
     pos.x*=u_resolution.x/u_resolution.y;
     vec2 mos=u_mouse/u_resolution;
-    vec3 color=vec3(0.);
-    float dist=distance(pos,mos);
-    float dist2=distance(pos,mos/vec2(.4,.4));
-    float dist3=distance(pos,mos/vec2(.2,.6));
-    float distAll=mod(pow(noise(vec2(dist/dist2*u_time,dist3*u_time)),2.)*20.,1.5);
-    vec3 colorLight=vec3(
-      (distAll*abs(sin(u_time/10.+dist)*100.))*.1,
-      (distAll*abs(sin(u_time/10.+dist2)*100.))*.1,
-      (distAll*abs(sin(u_time/10.+.1)*100.))*.1);
-      color=2.-(color+colorLight*rand(pos*.01));
-      // color.r*=pow(pos.y, pos.x);
-      // color.g*=noise(pos * 5.);
-      // color.b*=noise(pos * 5.);
-      // color=AZUR;
-      gl_FragColor=vec4(color,1.);
-    }
+    vec3 color=vec3(.7333,.6039,.6039);
+    vec3 texb=texture2D(u_texture_0,pos,0.).rgb;
+    gl_FragColor=vec4(texb,1.);
+  }
