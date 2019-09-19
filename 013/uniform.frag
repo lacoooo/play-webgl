@@ -31,15 +31,15 @@ float noise(vec2 p){
     float dist=distance(pos,mos);
     float dist2=distance(pos,mos/vec2(.4,.4));
     float dist3=distance(pos,mos/vec2(.2,.6));
-    float distAll=mod(pow(noise(vec2(dist/dist2*u_time,dist3*u_time)),2.)*20.,1.5);
+    float distAll=mod(pow(noise(vec2(dist / dist3*u_time,dist2 / dist*u_time)),2.)*20.,.8);
     vec3 colorLight=vec3(
-      (distAll*abs(sin(u_time/10.+dist)*100.))*.1,
-      (distAll*abs(sin(u_time/10.+dist2)*100.))*.1,
-      (distAll*abs(sin(u_time/10.+.1)*100.))*.1);
-      color=2.-(color+colorLight*rand(pos*.01));
+      (distAll*abs(sin(u_time/10.+dist)*100.)));
+      color=6.-(color+colorLight
+      *rand(pos)
+      );
       // color.r*=pow(pos.y, pos.x);
       // color.g*=noise(pos * 5.);
       // color.b*=noise(pos * 5.);
       // color=AZUR;
       gl_FragColor=vec4(color,1.);
-    }
+    } 
