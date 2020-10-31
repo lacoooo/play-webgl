@@ -20,6 +20,10 @@ class ShaderWrap {
     data = ''
 }
 
+class ImageWrap {
+    data = ''
+}
+
 class Canvas {
 
     #canvas!: HTMLCanvasElement
@@ -73,7 +77,13 @@ class Canvas {
         return wrap
     }
 
-    private async loadFile(url: string, wrap: ShaderWrap): Promise<void> {
+    public loadImage(url: string): ImageWrap {
+        const wrap = new ImageWrap()
+        this.loadFile(url, wrap)
+        return wrap
+    }
+
+    private async loadFile(url: string, wrap: ShaderWrap | ImageWrap): Promise<void> {
 
         this.#preloadLeftCount ++
 
@@ -86,13 +96,23 @@ class Canvas {
             throw new Error('Network response was not ok.')
         }
 
-
-        const text = await res.text()
+        if (wrap instanceof ShaderWrap) {
+            const text = await res.text()
+                .catch(err => {
+                    throw new Error('There has been a problem with your response blob(): ' + err.message)
+                })
+            // const objectURL: string = URL.createObjectURL(blob)
+            wrap.data = text
+        }
+        else if (wrap instanceof ImageWrap) {
+            const blob = await res.blob()
             .catch(err => {
                 throw new Error('There has been a problem with your response blob(): ' + err.message)
             })
-        // const objectURL: string = URL.createObjectURL(blob)
-        wrap.data = text
+            const objectURL: string = URL.createObjectURL(blob)
+            wrap.data = objectURL
+        }
+
         this.#preloadLeftCount --
         if (this.#preloadLeftCount === 0) {
             setTimeout(() => {
@@ -124,111 +144,107 @@ class Canvas {
     }
 
     private initShader() {
-        //创建顶点着色器对象
-        let vertexShader = this.#gl.createShader(this.#gl.VERTEX_SHADER);
-        //创建片元着色器对象
-        let fragmentShader = this.#gl.createShader(this.#gl.FRAGMENT_SHADER);
-        //引入顶点、片元着色器源代码
+        let vertexShader = this.#gl.createShader(this.#gl.VERTEX_SHADER)
+        let fragmentShader = this.#gl.createShader(this.#gl.FRAGMENT_SHADER)
         if (!vertexShader || !fragmentShader) {
             return
         }
-        this.#gl.shaderSource(vertexShader, this.vertexShaderSource.data);
-        this.#gl.shaderSource(fragmentShader, this.fragmentShaderSource.data);
-        //编译顶点、片元着色器
-        this.#gl.compileShader(vertexShader);
-        this.#gl.compileShader(fragmentShader);
+        this.#gl.shaderSource(vertexShader, this.vertexShaderSource.data)
+        this.#gl.shaderSource(fragmentShader, this.fragmentShaderSource.data)
+        this.#gl.compileShader(vertexShader)
+        this.#gl.compileShader(fragmentShader)
 
-        //创建程序对象program
-        this.#program = this.#gl.createProgram();
+        this.#program = this.#gl.createProgram()
         if (!this.#program) return
-        //附着顶点着色器和片元着色器到program
-        this.#gl.attachShader(this.#program, vertexShader);
-        this.#gl.attachShader(this.#program, fragmentShader);
-        //链接program
-        this.#gl.linkProgram(this.#program);
-        //使用program
-        this.#gl.useProgram(this.#program);
+        this.#gl.attachShader(this.#program, vertexShader)
+        this.#gl.attachShader(this.#program, fragmentShader)
+        this.#gl.linkProgram(this.#program)
+        this.#gl.useProgram(this.#program)
     }
 }
 function randomInt(range: number) {
-    return Math.floor(Math.random() * range);
+    return Math.floor(Math.random() * range)
 }
+
+let img
+
 const c = new Canvas({
     init: {
         canvasId: 'webgl'
     },
     preload: (cb) => {
         cb(c.loadShader('./vert.glsl'), c.loadShader('./frag.glsl'))
+        img = c.loadImage('./1.jpg')
     },
     setup: (gl, program) => {
         if (!program) return
-        const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
-        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+        const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution")
+        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height)
 
         const positionSet = () => {
-            const positionBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            const positionBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 
-            const positionAL = gl.getAttribLocation(program, "a_position");
-            gl.enableVertexAttribArray(positionAL);
+            const positionAL = gl.getAttribLocation(program, "a_position")
+            gl.enableVertexAttribArray(positionAL)
 
-            const size = 2;
-            const type = gl.FLOAT;
-            const normalize = false;
-            const stride = 0;
-            const offset_1 = 0;
-            gl.vertexAttribPointer(positionAL, size, type, normalize, stride, offset_1);
+            const size = 2
+            const type = gl.FLOAT
+            const normalize = false
+            const stride = 0
+            const offset_1 = 0
+            gl.vertexAttribPointer(positionAL, size, type, normalize, stride, offset_1)
         }
 
         function setPosition(x: number, y: number, width: number, height: number) {
-            var x1 = x;
-            var x2 = x + width;
-            var y1 = y;
-            var y2 = y + height;
+            var x1 = x
+            var x2 = x + width
+            var y1 = y
+            var y2 = y + height
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
                 x1, y1,
                 x2, y1,
-                x1, y2,]), gl.STATIC_DRAW);
+                x1, y2,]), gl.STATIC_DRAW)
         }
 
         function setColor() {
             // Pick 2 random colors.
-            var r1 = Math.random();
-            var b1 = Math.random();
-            var g1 = Math.random();
-            var r2 = Math.random();
-            var b2 = Math.random();
-            var g2 = Math.random();
+            var r1 = Math.random()
+            var b1 = Math.random()
+            var g1 = Math.random()
+            var r2 = Math.random()
+            var b2 = Math.random()
+            var g2 = Math.random()
 
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 new Float32Array(
                     [Math.random(), Math.random(), Math.random(), 1,
-                        Math.random(), Math.random(), Math.random(), 1,
-                        Math.random(), Math.random(), Math.random(), 1,]),
-                gl.STATIC_DRAW);
+                    Math.random(), Math.random(), Math.random(), 1,
+                    Math.random(), Math.random(), Math.random(), 1,]),
+                gl.STATIC_DRAW)
         }
 
         const colorSet = () => {
-            const colorBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            const colorBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 
-            const colorAL = gl.getAttribLocation(program, "a_color");
-            gl.enableVertexAttribArray(colorAL);
+            const colorAL = gl.getAttribLocation(program, "a_color")
+            gl.enableVertexAttribArray(colorAL)
 
-            const size = 4;
-            const type = gl.FLOAT;
-            const normalize = false;
-            const stride = 0;
-            const offset_1 = 0;
-            gl.vertexAttribPointer(colorAL, size, type, normalize, stride, offset_1);
+            const size = 4
+            const type = gl.FLOAT
+            const normalize = false
+            const stride = 0
+            const offset_1 = 0
+            gl.vertexAttribPointer(colorAL, size, type, normalize, stride, offset_1)
         }
 
         positionSet()
-        setPosition(randomInt(300), randomInt(300), randomInt(300), randomInt(300));
+        setPosition(randomInt(300), randomInt(300), randomInt(300), randomInt(300))
         colorSet()
-        setColor();
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        setColor()
+        gl.drawArrays(gl.TRIANGLES, 0, 6)
 
     },
 })
