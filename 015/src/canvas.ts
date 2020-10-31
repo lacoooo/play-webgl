@@ -6,7 +6,7 @@ declare global {
 
 export interface Iparams {
     init: Iinit
-    preload: () => void
+    preload: (callback: (vert: ShaderWrap, frag: ShaderWrap) => void) => void
     setup: () => void
 }
 
@@ -16,16 +16,22 @@ export type Iinit = {
     height?: number
 }
 
+class ShaderWrap {
+    data = ''
+}
+
 class Canvas {
 
     #canvas!: HTMLCanvasElement
-    #ctx!: WebGLRenderingContext
+    #gl!: WebGLRenderingContext
     #preloadLeftCount = 0
+    vertexShaderSource = { data: '' }
+    fragmentShaderSource = { data: '' }
     setupParams!: () => void
 
     constructor(params: Iparams) {
         this.canvasElementInit(params.init)
-        
+
         const {
             preload,
             setup,
@@ -38,6 +44,8 @@ class Canvas {
             if (setup) {
                 this.setup(setup)
             }
+            this.initShader()
+            this.#gl.drawArrays(this.#gl.POINTS, 0, 1);
         }, 0)
     }
 
@@ -52,7 +60,7 @@ class Canvas {
             this.#canvas = this._createElement("canvas") as HTMLCanvasElement
             document.body.appendChild(this.#canvas)
         }
-        this.#ctx = this.#canvas.getContext('webgl') as WebGLRenderingContext
+        this.#gl = this.#canvas.getContext('webgl') as WebGLRenderingContext
     }
 
     protected _createElement(elem = "div"): HTMLElement {
@@ -60,29 +68,29 @@ class Canvas {
         return d
     }
 
-    public loadShader(url: string): {data: string} {
-        const wrap = {data: ''}
+    public loadShader(url: string): ShaderWrap {
+        const wrap = new ShaderWrap()
         this.loadFile(url, wrap)
         return wrap
     }
 
-    private async loadFile(url: string, wrap: any): Promise<void> {
+    private async loadFile(url: string, wrap: ShaderWrap): Promise<void> {
 
         this.#preloadLeftCount ++
 
         const res = await fetch(url, { mode: 'cors' })
-        .catch(err => {
-            throw new Error('There has been a problem with your fetch operation: ' + err.message)
-        })
+            .catch(err => {
+                throw new Error('There has been a problem with your fetch operation: ' + err.message)
+            })
 
         if (!res.ok) {
             throw new Error('Network response was not ok.')
         }
 
         const blob = await res.blob()
-        .catch(err => {
-            throw new Error('There has been a problem with your response blob(): ' + err.message)
-        })
+            .catch(err => {
+                throw new Error('There has been a problem with your response blob(): ' + err.message)
+            })
 
         const objectURL: string = URL.createObjectURL(blob)
         wrap.data = objectURL
@@ -94,14 +102,17 @@ class Canvas {
         }
     }
 
-    public preload(cb: () => void) {
-        if (cb) cb()
+    public preload(cb: (callback: (vert: ShaderWrap, frag: ShaderWrap) => void) => void) {
+        if (cb) cb((vertexShaderSource, fragmentShaderSource) => {
+            this.vertexShaderSource = vertexShaderSource
+            this.fragmentShaderSource = fragmentShaderSource
+        })
     }
 
-        /**
-     * Setup only call once
-     * @param cb Function to be called at initialization time
-     */
+    /**
+ * Setup only call once
+ * @param cb Function to be called at initialization time
+ */
     public setup(cb: () => void) {
         if (!this.setupParams) {
             this.setupParams = cb
@@ -112,60 +123,51 @@ class Canvas {
         if (cb) cb()
     }
 
+    private initShader() {
+        //创建顶点着色器对象
+        let vertexShader = this.#gl.createShader(this.#gl.VERTEX_SHADER);
+        //创建片元着色器对象
+        let fragmentShader = this.#gl.createShader(this.#gl.FRAGMENT_SHADER);
+        //引入顶点、片元着色器源代码
+        if (!vertexShader || !fragmentShader) {
+            return
+        }
+        this.#gl.shaderSource(vertexShader, this.vertexShaderSource.data);
+        this.#gl.shaderSource(fragmentShader, this.fragmentShaderSource.data);
+        //编译顶点、片元着色器
+        this.#gl.compileShader(vertexShader);
+        this.#gl.compileShader(fragmentShader);
+
+        //创建程序对象program
+        const program = this.#gl.createProgram();
+        if (!program) return
+        //附着顶点着色器和片元着色器到program
+        this.#gl.attachShader(program, vertexShader);
+        this.#gl.attachShader(program, fragmentShader);
+        //链接program
+        this.#gl.linkProgram(program);
+        //使用program
+        this.#gl.useProgram(program);
+    }
 }
 
 window.Canvas = Canvas
 
 let vertexShaderSource: any
+let fragShaderSource: any
 
-const canvas = new Canvas({
+const cc = new Canvas({
     init: {
         canvasId: 'webgl'
     },
-    preload: () => {
-        vertexShaderSource = canvas.loadShader('./vert.glsl')
+    preload: (cb) => {
+        vertexShaderSource = cc.loadShader('./vert.glsl')
+        fragShaderSource = cc.loadShader('./frag.glsl')
+        cb(vertexShaderSource, fragShaderSource)
     },
     setup: () => {
         console.log(vertexShaderSource)
-      },
+    },
 })
 
-return
-
-//片元着色器源码
-var fragShaderSource = '' +
-    'void main(){' +
-    //定义片元颜色
-    '   gl_FragColor = vec4(1.0,0.0,0.0,1.0);' +
-    '}';
-
-//初始化着色器
-var program = initShader(gl, vertexShaderSource, fragShaderSource);
-//开始绘制，显示器显示结果
-gl.drawArrays(gl.POINTS, 0, 1);
-
-//声明初始化着色器函数
-function initShader(gl, vertexShaderSource, fragmentShaderSource) {
-    //创建顶点着色器对象
-    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    //创建片元着色器对象
-    var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    //引入顶点、片元着色器源代码
-    gl.shaderSource(vertexShader, vertexShaderSource);
-    gl.shaderSource(fragmentShader, fragmentShaderSource);
-    //编译顶点、片元着色器
-    gl.compileShader(vertexShader);
-    gl.compileShader(fragmentShader);
-
-    //创建程序对象program
-    var program = gl.createProgram();
-    //附着顶点着色器和片元着色器到program
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    //链接program
-    gl.linkProgram(program);
-    //使用program
-    gl.useProgram(program);
-    //返回程序program对象
-    return program;
-}
+console.log(cc)
