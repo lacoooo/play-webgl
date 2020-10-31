@@ -7,7 +7,7 @@ declare global {
 export interface Iparams {
     init: Iinit
     preload: (callback: (vert: ShaderWrap, frag: ShaderWrap) => void) => void
-    setup: () => void
+    setup: (gl: WebGLRenderingContext, program: WebGLProgram | null) => void
 }
 
 export type Iinit = {
@@ -24,10 +24,11 @@ class Canvas {
 
     #canvas!: HTMLCanvasElement
     #gl!: WebGLRenderingContext
+    #program!: WebGLProgram | null
     #preloadLeftCount = 0
     vertexShaderSource = { data: '' }
     fragmentShaderSource = { data: '' }
-    setupParams!: () => void
+    setupParams!: Iparams['setup']
 
     constructor(params: Iparams) {
         this.canvasElementInit(params.init)
@@ -44,8 +45,6 @@ class Canvas {
             if (setup) {
                 this.setup(setup)
             }
-            this.initShader()
-            this.#gl.drawArrays(this.#gl.POINTS, 0, 1);
         }, 0)
     }
 
@@ -87,16 +86,17 @@ class Canvas {
             throw new Error('Network response was not ok.')
         }
 
-        const blob = await res.blob()
+
+        const text = await res.text()
             .catch(err => {
                 throw new Error('There has been a problem with your response blob(): ' + err.message)
             })
-
-        const objectURL: string = URL.createObjectURL(blob)
-        wrap.data = objectURL
+        // const objectURL: string = URL.createObjectURL(blob)
+        wrap.data = text
         this.#preloadLeftCount --
         if (this.#preloadLeftCount === 0) {
             setTimeout(() => {
+                this.initShader()
                 this.setup(this.setupParams)
             }, 0)
         }
@@ -113,14 +113,14 @@ class Canvas {
  * Setup only call once
  * @param cb Function to be called at initialization time
  */
-    public setup(cb: () => void) {
+    public setup(cb: Iparams['setup']) {
         if (!this.setupParams) {
             this.setupParams = cb
         }
 
         if (this.#preloadLeftCount > 0) return
 
-        if (cb) cb()
+        if (cb) cb(this.#gl, this.#program)
     }
 
     private initShader() {
@@ -139,35 +139,98 @@ class Canvas {
         this.#gl.compileShader(fragmentShader);
 
         //创建程序对象program
-        const program = this.#gl.createProgram();
-        if (!program) return
+        this.#program = this.#gl.createProgram();
+        if (!this.#program) return
         //附着顶点着色器和片元着色器到program
-        this.#gl.attachShader(program, vertexShader);
-        this.#gl.attachShader(program, fragmentShader);
+        this.#gl.attachShader(this.#program, vertexShader);
+        this.#gl.attachShader(this.#program, fragmentShader);
         //链接program
-        this.#gl.linkProgram(program);
+        this.#gl.linkProgram(this.#program);
         //使用program
-        this.#gl.useProgram(program);
+        this.#gl.useProgram(this.#program);
     }
 }
-
-window.Canvas = Canvas
-
-let vertexShaderSource: any
-let fragShaderSource: any
-
-const cc = new Canvas({
+function randomInt(range: number) {
+    return Math.floor(Math.random() * range);
+}
+const c = new Canvas({
     init: {
         canvasId: 'webgl'
     },
     preload: (cb) => {
-        vertexShaderSource = cc.loadShader('./vert.glsl')
-        fragShaderSource = cc.loadShader('./frag.glsl')
-        cb(vertexShaderSource, fragShaderSource)
+        cb(c.loadShader('./vert.glsl'), c.loadShader('./frag.glsl'))
     },
-    setup: () => {
-        console.log(vertexShaderSource)
+    setup: (gl, program) => {
+        if (!program) return
+        const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+        gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+        const positionSet = () => {
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+            const positionAL = gl.getAttribLocation(program, "a_position");
+            gl.enableVertexAttribArray(positionAL);
+
+            const size = 2;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset_1 = 0;
+            gl.vertexAttribPointer(positionAL, size, type, normalize, stride, offset_1);
+        }
+
+        function setPosition(x: number, y: number, width: number, height: number) {
+            var x1 = x;
+            var x2 = x + width;
+            var y1 = y;
+            var y2 = y + height;
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                x1, y1,
+                x2, y1,
+                x1, y2,]), gl.STATIC_DRAW);
+        }
+
+        function setColor() {
+            // Pick 2 random colors.
+            var r1 = Math.random();
+            var b1 = Math.random();
+            var g1 = Math.random();
+            var r2 = Math.random();
+            var b2 = Math.random();
+            var g2 = Math.random();
+
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(
+                    [Math.random(), Math.random(), Math.random(), 1,
+                        Math.random(), Math.random(), Math.random(), 1,
+                        Math.random(), Math.random(), Math.random(), 1,]),
+                gl.STATIC_DRAW);
+        }
+
+        const colorSet = () => {
+            const colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+
+            const colorAL = gl.getAttribLocation(program, "a_color");
+            gl.enableVertexAttribArray(colorAL);
+
+            const size = 4;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset_1 = 0;
+            gl.vertexAttribPointer(colorAL, size, type, normalize, stride, offset_1);
+        }
+
+        positionSet()
+        setPosition(randomInt(300), randomInt(300), randomInt(300), randomInt(300));
+        colorSet()
+        setColor();
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
     },
 })
 
-console.log(cc)
+console.log(c)
