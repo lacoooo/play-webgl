@@ -33,6 +33,7 @@ class Canvas {
     vertexShaderSource = { data: '' }
     fragmentShaderSource = { data: '' }
     setupParams!: Iparams['setup']
+    drawParams!: Iparams['setup']
 
     constructor(params: Iparams) {
         this.canvasElementInit(params.init)
@@ -144,13 +145,14 @@ class Canvas {
         if (this.#preloadLeftCount > 0) return
 
         if (cb) cb(this.#gl, this.#program)
+        if (this.drawParams) this.draw(this.drawParams)
     }
 
     private initShader() {
         let vertexShader = this.#gl.createShader(this.#gl.VERTEX_SHADER)
         let fragmentShader = this.#gl.createShader(this.#gl.FRAGMENT_SHADER)
         if (!vertexShader || !fragmentShader) {
-            return
+            throw new Error('No shader file')
         }
         this.#gl.shaderSource(vertexShader, this.vertexShaderSource.data)
         this.#gl.shaderSource(fragmentShader, this.fragmentShaderSource.data)
@@ -158,15 +160,107 @@ class Canvas {
         this.#gl.compileShader(fragmentShader)
 
         this.#program = this.#gl.createProgram()
-        if (!this.#program) return
+        if (!this.#program) {
+            throw new Error('No program')
+        }
         this.#gl.attachShader(this.#program, vertexShader)
         this.#gl.attachShader(this.#program, fragmentShader)
         this.#gl.linkProgram(this.#program)
         this.#gl.useProgram(this.#program)
     }
 
-    redraw(cb: (gl: WebGLRenderingContext, program: WebGLProgram | null) => void) {
-        cb(this.#gl, this.#program)
+    public draw(cb: (gl: WebGLRenderingContext, program: WebGLProgram | null) => void) {
+        if (!this.drawParams) {
+            this.drawParams = cb
+        }
+        else {
+            cb(this.#gl, this.#program)
+        }
+    }
+
+    public createAttribute(name: string, size = 2) {
+        const gl = this.#gl
+        const program = this.#program
+        if (!program) {
+            throw new Error('No program')
+        }
+        const buffer = gl.createBuffer()
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+
+        const AL = gl.getAttribLocation(program, name)
+        gl.enableVertexAttribArray(AL)
+
+        const type = gl.FLOAT
+        const normalize = false
+        const stride = 0
+        const offset_1 = 0
+        gl.vertexAttribPointer(AL, size, type, normalize, stride, offset_1)
+    }
+
+    public setRect(x: number, y: number, width: number, height: number) {
+        var x1 = x
+        var x2 = x + width
+        var y1 = y
+        var y2 = y + height
+        this.bufferData([
+            x1, y1,
+            x2, y1,
+            x1, y2,
+
+            x1, y2,
+            x2, y1,
+            x2, y2,
+        ])
+    }
+
+    public bufferData(dataArray: number[]) {
+        if (!dataArray) {
+            throw new Error('No dataArray')
+        }
+        if (!dataArray.length) {
+            throw new Error('Empty data array')
+        }
+        const gl = this.#gl
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(dataArray), gl.STATIC_DRAW);
+    }
+
+    public createTexture() {
+        const gl = this.#gl
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Set the parameters so we can render any size image.
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        return texture;
+    }
+
+    public u_resolution() {
+        const gl = this.#gl
+        const program = this.#program
+        if (!program) {
+            throw new Error('No program')
+        }
+        const UL = gl.getUniformLocation(program, "u_resolution")
+        gl.uniform2f(UL, gl.canvas.width, gl.canvas.height)
+    }
+
+    public u_image() {
+        const gl = this.#gl
+        const program = this.#program
+        if (!program) {
+            throw new Error('No program')
+        }
+        const UL = gl.getUniformLocation(program, "u_image")
+        gl.uniform1i(UL, 0);
+    }
+
+    public useImage(img: HTMLImageElement) {
+        const gl = this.#gl
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     }
 }
 
@@ -336,120 +430,43 @@ const c = new Canvas({
     setup: (gl, program) => {
         if (!program) return
 
-        const u_resolution = () => {
-            const UL = gl.getUniformLocation(program, "u_resolution")
-            gl.uniform2f(UL, gl.canvas.width, gl.canvas.height)
-        }
-
-        const u_image = () => {
-            const UL = gl.getUniformLocation(program, "u_image")
-            gl.uniform1i(UL, 0);
-        }
-
-        const createAttribute = (name: string, size = 2) => {
-            const buffer = gl.createBuffer()
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-
-            const AL = gl.getAttribLocation(program, name)
-            gl.enableVertexAttribArray(AL)
-
-            const type = gl.FLOAT
-            const normalize = false
-            const stride = 0
-            const offset_1 = 0
-            gl.vertexAttribPointer(AL, size, type, normalize, stride, offset_1)
-        }
-
-        const createTexture = () => {
-            const texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-
-            // Set the parameters so we can render any size image.
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-            return texture;
-        }
-
-        const setPosition = (x: number, y: number, width: number, height: number) => {
-            var x1 = x
-            var x2 = x + width
-            var y1 = y
-            var y2 = y + height
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                x1, y1,
-                x2, y1,
-                x1, y2,
-
-                x1, y2,
-                x2, y1,
-                x2, y2,
-            ]), gl.STATIC_DRAW)
-        }
-
-        const setTexCoord = () => {
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-                0.0, 0.0,
-                1.0, 0.0,
-                0.0, 1.0,
-                0.0, 1.0,
-                1.0, 0.0,
-                1.0, 1.0,
-            ]), gl.STATIC_DRAW);
-        }
-
-        const setColor = () => {
-            // Pick 2 random colors.
-            var r1 = Math.random()
-            var b1 = Math.random()
-            var g1 = Math.random()
-            var r2 = Math.random()
-            var b2 = Math.random()
-            var g2 = Math.random()
-
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(
-                    [Math.random(), Math.random(), Math.random(), 1,
-                    Math.random(), Math.random(), Math.random(), 1,
-                    Math.random(), Math.random(), Math.random(), 1,]),
-                gl.STATIC_DRAW)
-        }
-
-        u_resolution()
-        u_image()
-        createAttribute('a_position', 2)
-        setPosition(0, 0, img.data.width, img.data.height)
-        createAttribute('a_texCoord', 2)
-        setTexCoord()
-        createTexture()
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img.data);
-
-        const textures = []
-        const frameBuffers = []
-        for (let i = 0; i < 2; i++) {
-            const texture = createTexture()
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.data.width, img.data.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-            textures.push(texture)
-
-            const fbo = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-            frameBuffers.push(fbo);
-
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-        }
-
-        // createAttribute('a_color', 4)
-        // setColor()
-        gl.drawArrays(gl.TRIANGLES, 0, 6)
-
+        c.u_resolution()
+        c.u_image()
+        c.createAttribute('a_position', 2)
+        c.setRect(0, 0, img.data.width, img.data.height)
+        c.createAttribute('a_texCoord', 2)
+        // setTexCoord
+        c.bufferData([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0
+        ])
+        c.createTexture()
+        c.useImage(img.data)
     },
 })
 
-c.redraw((gl, program) => {
-    console.log('redraw', gl, program)
+c.draw((gl, program) => {
+    if (!program) return
+
+    // const textures = []
+    // const frameBuffers = []
+    // for (let i = 0; i < 2; i++) {
+    //     const texture = c.createTexture()
+    //     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, img.data.width, img.data.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    //     textures.push(texture)
+
+    //     const fbo = gl.createFramebuffer();
+    //     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    //     frameBuffers.push(fbo);
+
+    //     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+    // }
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
 });
 
 console.log(c)
