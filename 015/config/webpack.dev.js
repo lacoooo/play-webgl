@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 var path = require('path');
 
-var LIB_PATH = path.resolve(__dirname, '../src/canvas.ts')
+var LIB_PATH = path.resolve(__dirname, '../src/index.ts')
 var BUILD_PATH = path.resolve(__dirname, '../dist')
 
 
@@ -15,10 +15,10 @@ module.exports = {
     },
 
     output: {
-        library: 'canvas',
+        library: 'index',
         libraryTarget: 'umd',
         path: BUILD_PATH,
-        filename: 'canvas.js'
+        filename: 'index.js'
     },
 
     watchOptions: { poll: true },
