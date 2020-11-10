@@ -30,7 +30,6 @@ export class CanvasGL {
     gl!: WebGLRenderingContext
     #program!: WebGLProgram | null
     #preloadLeftCount = 0
-    buffers: {buffer: WebGLBuffer, size: number, attribLocation: number}[] = []
     vertexShaderSource = { data: '' }
     fragmentShaderSource = { data: '' }
     setupParams!: Iparams['setup']
@@ -193,14 +192,6 @@ export class CanvasGL {
         cb(this.#program)
     }
 
-    public rebindBuffers() {
-        this.buffers.forEach(buffer => {
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer.buffer)
-            this.gl.enableVertexAttribArray(buffer.attribLocation)
-            this.gl.vertexAttribPointer(buffer.attribLocation, buffer.size, this.gl.FLOAT, false, 0, 0)
-        })
-    }
-
     public createAttribute(name: string, size = 2) {
         
         const program = this.#program
@@ -215,7 +206,6 @@ export class CanvasGL {
 
         const attribLocation = this.gl.getAttribLocation(program, name)
         this.gl.enableVertexAttribArray(attribLocation)
-        this.buffers.push({buffer, size, attribLocation})
 
         this.gl.vertexAttribPointer(attribLocation, size, this.gl.FLOAT, false, 0, 0)
     }
@@ -261,18 +251,17 @@ export class CanvasGL {
         return texture;
     }
 
-    public u_image() {
+    // public u_image() {
         
-        const program = this.#program
-        if (!program) {
-            throw new Error('No program')
-        }
-        const uniformLocation = this.gl.getUniformLocation(program, "u_image")
-        this.gl.uniform1i(uniformLocation, 0);
-    }
+    //     const program = this.#program
+    //     if (!program) {
+    //         throw new Error('No program')
+    //     }
+    //     const uniformLocation = this.gl.getUniformLocation(program, "u_image")
+    //     this.gl.uniform1i(uniformLocation, 0);
+    // }
 
-    public useImage(img: HTMLImageElement) {
-        
+    public texImage2D(img: HTMLImageElement) {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
     }
 }
