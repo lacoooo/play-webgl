@@ -26,7 +26,7 @@ export class ImageWrap {
 
 export class CanvasGL {
 
-    #canvas!: HTMLCanvasElement
+    canvas!: HTMLCanvasElement
     gl!: WebGLRenderingContext
     #program!: WebGLProgram | null
     #preloadLeftCount = 0
@@ -57,14 +57,14 @@ export class CanvasGL {
         const { canvasId } = init || {}
         if (canvasId) {
             const canvas = document.getElementById(canvasId) as HTMLCanvasElement
-            if (canvas !== null) this.#canvas = canvas
-            else this.#canvas = this._createElement("canvas") as HTMLCanvasElement
+            if (canvas !== null) this.canvas = canvas
+            else this.canvas = this._createElement("canvas") as HTMLCanvasElement
         }
         else {
-            this.#canvas = this._createElement("canvas") as HTMLCanvasElement
-            document.body.appendChild(this.#canvas)
+            this.canvas = this._createElement("canvas") as HTMLCanvasElement
+            document.body.appendChild(this.canvas)
         }
-        this.gl = this.#canvas.getContext('webgl') as WebGLRenderingContext
+        this.gl = this.canvas.getContext('webgl') as WebGLRenderingContext
     }
 
     protected _createElement(elem = "div"): HTMLElement {
@@ -192,7 +192,7 @@ export class CanvasGL {
         cb(this.#program)
     }
 
-    public createAttribute(name: string, size = 2) {
+    public createAttribute(name: string, size: number, type: number, normalize: boolean) {
         
         const program = this.#program
         if (!program) {
@@ -207,7 +207,7 @@ export class CanvasGL {
         const attribLocation = this.gl.getAttribLocation(program, name)
         this.gl.enableVertexAttribArray(attribLocation)
 
-        this.gl.vertexAttribPointer(attribLocation, size, this.gl.FLOAT, false, 0, 0)
+        this.gl.vertexAttribPointer(attribLocation, size, type, normalize, 0, 0)
     }
 
     public setRect(x: number, y: number, width: number, height: number) {
@@ -215,7 +215,7 @@ export class CanvasGL {
         var x2 = x + width
         var y1 = y
         var y2 = y + height
-        this.bufferData([
+        this.bufferData(new Float32Array([
             x1, y1,
             x2, y1,
             x1, y2,
@@ -223,10 +223,10 @@ export class CanvasGL {
             x1, y2,
             x2, y1,
             x2, y2,
-        ])
+        ]))
     }
 
-    public bufferData(dataArray: number[]) {
+    public bufferData(dataArray: Uint8Array | Float32Array) {
         if (!dataArray) {
             throw new Error('No dataArray')
         }
@@ -234,7 +234,7 @@ export class CanvasGL {
             throw new Error('Empty data array')
         }
         
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(dataArray), this.gl.STATIC_DRAW);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, dataArray, this.gl.STATIC_DRAW);
     }
 
     public createTexture() {
@@ -263,5 +263,9 @@ export class CanvasGL {
 
     public texImage2D(img: HTMLImageElement) {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
+    }
+
+    static degToRad(d: number) {
+        return d * Math.PI / 180;
     }
 }

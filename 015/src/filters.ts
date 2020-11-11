@@ -177,18 +177,18 @@ const c = new CanvasGL({
         const gl = c.gl
         if (!program) return
         // c.u_image()
-        c.createAttribute('a_position', 2)
+        c.createAttribute('a_position', 2, c.gl.FLOAT, false)
         c.setRect(0, 0, img.data.width, img.data.height)
-        c.createAttribute('a_texCoord', 2)
+        c.createAttribute('a_texCoord', 2, c.gl.FLOAT, false)
         // setTexCoord
-        c.bufferData([
+        c.bufferData(new Float32Array([
             0.0, 0.0,
             1.0, 0.0,
             0.0, 1.0,
             0.0, 1.0,
             1.0, 0.0,
             1.0, 1.0
-        ])
+        ]))
         originalImageTexture = c.createTexture()
         c.texImage2D(img.data)
 
