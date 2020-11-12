@@ -98,7 +98,7 @@ function draw() {
     const rotation = [CanvasGL.degToRad(ops.rotateX), CanvasGL.degToRad(ops.rotateY), CanvasGL.degToRad(ops.rotateZ)];
     const scale = [ops.scaleX, ops.scaleY, ops.scaleZ];
 
-    let matrix = m4.perspective(60, c.canvas.width, c.canvas.height, 1, 2000);
+    let matrix = m4.perspective(ops.fv, c.canvas.width, c.canvas.height, 1, 2000);
     m4.translate(matrix, translation[0], translation[1], translation[2]);
     m4.xRotate(matrix, rotation[0]);
     m4.yRotate(matrix, rotation[1]);
