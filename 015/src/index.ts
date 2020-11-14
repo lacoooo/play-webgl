@@ -2,21 +2,26 @@ import { CanvasGL } from './canvasGL'
 import * as dat from 'dat.gui';
 import * as mt from 'gl-matrix';
 const gui = new dat.GUI();
+const mat4 = mt.mat4
 
 const ops = {
-    x: -150,
+    x: 0,
     y: 0,
-    z: -360,
+    z: 0,
 
-    rotateX: 190,
-    rotateY: 30,
-    rotateZ: 320,
+    rotateX: 0,
+    rotateY: 46,
+    rotateZ: 180,
 
     scaleX: 1,
     scaleY: 1,
     scaleZ: 1,
 
-    fv: 90
+    fv: 90,
+    cameraAngle: 0,
+    cameraX: 200,
+    cameraY: 200,
+    cameraZ: 200
 }
 
 gui.add(ops, 'x', -500, 500).onChange(draw)
@@ -32,91 +37,47 @@ gui.add(ops, 'scaleY', -2, 2).onChange(draw)
 gui.add(ops, 'scaleZ', -2, 2).onChange(draw)
 
 gui.add(ops, 'fv', -100, 200).onChange(draw)
-
-const mat4 = mt.mat4
-
-const m4 = {
-    projection: function (width: number, height: number, depth: number) {
-        return new Float32Array([
-            2 / width, 0, 0, 0,
-            0, -2 / height, 0, 0,
-            0, 0, 2 / depth, 0,
-            -1, 1, 0, 1,
-        ]);
-    },
-    orthographic: function (left: number, right: number, bottom: number, top: number, near: number, far: number) {
-        return new Float32Array([
-            2 / (right - left), 0, 0, 0,
-            0, 2 / (top - bottom), 0, 0,
-            0, 0, 2 / (near - far), 0,
-
-            (left + right) / (left - right),
-            (bottom + top) / (bottom - top),
-            (near + far) / (near - far),
-            1,
-        ])
-    },
-    perspective: function (fieldOfViewInRadians: number, width: number, height: number, near: number, far: number) {
-        const f = Math.tan(Math.PI * 0.5 - 0.5 * fieldOfViewInRadians);
-        const rangeInv = 1.0 / (near - far);
-     
-        const aspect = width / height;
-
-        console.log(new Float32Array([
-            f / aspect, 0, 0, 0,
-            0, f, 0, 0,
-            0, 0, (near + far) * rangeInv, -1,
-            0, 0, near * far * rangeInv * 2, 0
-          ]))
-
-        return new Float32Array([
-          f / aspect, 0, 0, 0,
-          0, f, 0, 0,
-          0, 0, (near + far) * rangeInv, -1,
-          0, 0, near * far * rangeInv * 2, 0
-        ]);
-    },
-    translate: function (m: mt.mat4, tx: number, ty: number, tz: number) {
-        return mat4.translate(m, m, [tx, ty, tz]);
-    },
-    xRotate: function (m: mt.mat4, angleInRadians: number) {
-        return mat4.rotateX(m, m, angleInRadians);
-    },
-    yRotate: function (m: mt.mat4, angleInRadians: number) {
-        return mat4.rotateY(m, m, angleInRadians);
-    },
-    zRotate: function (m: mt.mat4, angleInRadians: number) {
-        return mat4.rotateZ(m, m, angleInRadians);
-    },
-    scale: function (m: mt.mat4, sx: number, sy: number, sz: number) {
-        return mat4.scale(m, m, [sx, sy, sz]);
-    },
-};
+gui.add(ops, 'cameraAngle', -360, 360).onChange(draw)
+gui.add(ops, 'cameraX', -360, 360).onChange(draw)
+gui.add(ops, 'cameraY', -360, 360).onChange(draw)
+gui.add(ops, 'cameraZ', -360, 360).onChange(draw)
 
 function draw() {
+
+    let cameraMatrix_0 = mat4.fromYRotation(mat4.create(), CanvasGL.degToRad(ops.cameraAngle));
+    mat4.translate(cameraMatrix_0, cameraMatrix_0, [0, 0, ops.cameraZ]);
+    const cameraPos = new Float32Array([cameraMatrix_0[12], cameraMatrix_0[13], cameraMatrix_0[14]]);
+    // const cameraPos = new Float32Array([ops.cameraX, ops.cameraY, ops.cameraZ])
+    const targetPos = new Float32Array([0, 0, 0]);
+    const up = new Float32Array([0, 1, 0]);
+    const cameraMatrix = mat4.lookAt(mat4.create(), cameraPos, targetPos, up);
+
     const translation = [ops.x, ops.y, ops.z]
     const rotation = [CanvasGL.degToRad(ops.rotateX), CanvasGL.degToRad(ops.rotateY), CanvasGL.degToRad(ops.rotateZ)];
     const scale = [ops.scaleX, ops.scaleY, ops.scaleZ];
 
-    let matrix = m4.perspective(ops.fv, c.canvas.width, c.canvas.height, 1, 2000);
-    m4.translate(matrix, translation[0], translation[1], translation[2]);
-    m4.xRotate(matrix, rotation[0]);
-    m4.yRotate(matrix, rotation[1]);
-    m4.zRotate(matrix, rotation[2]);
-    m4.scale(matrix, scale[0], scale[1], scale[2]);
+    const m = mat4.perspective(mat4.create(), CanvasGL.degToRad(ops.fv), c.canvas.width / c.canvas.height, 1, 2000);
+    
+    mat4.multiply(m, m, cameraMatrix)
+    mat4.translate(m, m, [translation[0], translation[1], translation[2]]);
+    mat4.rotateX(m, m, rotation[0]);
+    mat4.rotateY(m, m, rotation[1]);
+    mat4.rotateZ(m, m, rotation[2]);
+    mat4.scale(m, m, [scale[0], scale[1], scale[2]]);
 
     c.gl.enable(c.gl.CULL_FACE);
-
     c.gl.clear(c.gl.COLOR_BUFFER_BIT | c.gl.DEPTH_BUFFER_BIT);
-
-    c.gl.uniformMatrix4fv(u_matrix, false, matrix);
-    c.gl.uniform1f(u_fudgeFactor, ops.fv);
-
+    c.gl.uniformMatrix4fv(u_worldViewProjection, false, m);
+    const worldMatrix = mat4.fromYRotation(mat4.create(), CanvasGL.degToRad(ops.cameraAngle));
+    const worldInverseTransposeMatrix = mat4.transpose(mat4.create(), worldMatrix);
+    c.gl.uniformMatrix4fv(u_worldInverseTranspose, false, worldInverseTransposeMatrix);
+    c.gl.uniform3fv(u_reverseLightDirection, [0.5, 0.7, 1]);
     c.gl.drawArrays(c.gl.TRIANGLES, 0, 16 * 6);
 }
 
-let u_matrix: WebGLUniformLocation | null
-let u_fudgeFactor: WebGLUniformLocation | null
+let u_worldViewProjection: WebGLUniformLocation | null
+let u_reverseLightDirection: WebGLUniformLocation | null
+let u_worldInverseTranspose: WebGLUniformLocation | null
 
 const c = new CanvasGL({
     init: {
@@ -264,6 +225,10 @@ const c = new CanvasGL({
             // left column front
             200, 70, 120,
             200, 70, 120,
+            200, 70, 120,
+            200, 70, 120,
+            200, 70, 120,
+            200, 70, 120,
 
             // top rung front
             200, 70, 120,
@@ -385,9 +350,140 @@ const c = new CanvasGL({
             160, 160, 220,
             160, 160, 220]))
 
-            u_matrix = c.gl.getUniformLocation(program, "u_matrix");
-            u_fudgeFactor = c.gl.getUniformLocation(program, "u_fudgeFactor");
+        c.createAttribute('a_normal', 3, c.gl.FLOAT, false)
 
+        c.bufferData(new Float32Array([
+                // 正面左竖
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+ 
+          // 正面上横
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+ 
+          // 正面中横
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+          0, 0, 1,
+ 
+          // 背面左竖
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+ 
+          // 背面上横
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+ 
+          // 背面中横
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+          0, 0, -1,
+ 
+          // 顶部
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+ 
+          // 上横右面
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+ 
+          // 上横下面
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+ 
+          // 上横和中横之间
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+ 
+          // 中横上面
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+          0, 1, 0,
+ 
+          // 中横右面
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+ 
+          // 中横底面
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+ 
+          // 底部右侧
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+          1, 0, 0,
+ 
+          // 底面
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+          0, -1, 0,
+ 
+          // 左面
+          -1, 0, 0,
+          -1, 0, 0,
+          -1, 0, 0,
+          -1, 0, 0,
+          -1, 0, 0,
+          -1, 0, 0]))
+
+          u_worldViewProjection = c.gl.getUniformLocation(program, "u_worldViewProjection");
+          u_reverseLightDirection = c.gl.getUniformLocation(program, "u_reverseLightDirection");
+          u_worldInverseTranspose = c.gl.getUniformLocation(program, "u_worldInverseTranspose");
         draw()
 
     },

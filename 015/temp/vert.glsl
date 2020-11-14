@@ -1,21 +1,17 @@
 attribute vec4 a_position;
 attribute vec4 a_color;
-
-uniform mat4 u_matrix;
-uniform float u_fudgeFactor;
-
 varying vec4 v_color;
 
+attribute vec3 a_normal;
+varying vec3 v_normal;
+
+uniform mat4 u_worldViewProjection;
+uniform mat4 u_worldInverseTranspose;
+
 void main() {
-  // Multiply the position by the matrix.
-  vec4 position = u_matrix * a_position;
 
-  // Adjust the z to divide by
-  float zToDivideBy = 1.0 + position.z * u_fudgeFactor;
+  gl_Position = u_worldViewProjection * a_position;
 
-  // Divide x and y by z.
-  gl_Position = vec4(position.xy / zToDivideBy, position.z, .7);
-
-  // Pass the color to the fragment shader.
   v_color = a_color;
+  v_normal = mat3(u_worldInverseTranspose) * a_normal;
 }
