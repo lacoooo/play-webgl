@@ -1,11 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
+    <style>
+        canvas {
+            width: 1024px !important;
+            height: 1024px !important;
+        }
+    </style>
 </head>
+
 <body>
-    <script src="./index.js"></script>
+    <script src="./node_modules/regl/dist/regl.min.js">
+
+    </script>
+    <script type="module">
+        const regl = createREGL()
+        const RADIUS = 128
+        const INITIAL_CONDITIONS = (Array(RADIUS * RADIUS * 4)).fill(0).map(
+            () => Math.random() > 0.9 ? 255 : 0)
+
+        const state = (Array(2)).fill().map(() =>
+            regl.framebuffer({
+                color: regl.texture({
+                    radius: RADIUS,
+                    data: INITIAL_CONDITIONS,
+                    wrap: 'repeat'
+                }),
+                depthStencil: false
+            }))
+
+        const updateLife = regl({
+            frag: `
+                precision mediump float;
+                uniform sampler2D prevState;
+                varying vec2 uv;
+                void main() {
+                    float n = 0.0;
+                    for(int dx=-1; dx<=1; ++dx)
+                        for(int dy=-1; dy<=1; ++dy) {
+                            n += texture2D(prevState, uv + vec2(dx,dy)/${RADIUS}.0).r;
+                        }
+                    float s = texture2D(prevState, uv).r;
+                    if (n > 3.0 + s || n < 3.0) {
+                        gl_FragColor = vec4(0,0,0,1);
+                    } else {
+                        gl_FragColor = vec4(1,1,1,1);
+                    }
+                }`,
+            framebuffer: ({ tick }) => state[(tick + 1) % 2]
+        })
+
+        const setupQuad = regl({
+            frag: `
+                precision mediump float;
+                uniform sampler2D prevState;
+                varying vec2 uv;
+                float random(in vec2 st) {
+                    return fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123);
+                }
+                void main() {
+                    float state = texture2D(prevState, uv / 10. + random(uv / 100.0) / 10.).r;
+                    gl_FragColor = vec4(vec3(state), 1);
+                }`,
+            vert: `
+                precision mediump float;
+                attribute vec2 position;
+                varying vec2 uv;
+                void main() {
+                    uv = 0.5 * (position + 1.0);
+                    gl_Position = vec4(position, 0, 1);
+                }`,
+            attributes: {
+                position: [[0, -1], [-1, 0], [1, 1]]
+            },
+            uniforms: {
+                prevState: ({ tick }) => state[tick % 2]
+            },
+            depth: { enable: false },
+            count: 3
+        })
+
+        regl.frame(() => {
+            setupQuad(() => {
+                regl.draw()
+                updateLife()
+            })
+        })
+
+    </script>
 </body>
+
 </html>
