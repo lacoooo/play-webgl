@@ -12,10 +12,10 @@ void main(){
 
    float light = dot(v_normal, u_reverseLightDirection);
 
-   vec3 color = light * v_color.rgb / 2.0 + v_color.rgb * 1.5;
+   vec3 color = light * v_color.rgb / 1.2 + v_color.rgb * 1.5;
 
    gl_FragColor = vec4(color, 1.0);
 
-   gl_FragColor = texture2D(u_texture, v_texcoord);
+   gl_FragColor = vec4(color, 1.0) * texture2D(u_texture, v_texcoord);
    
 }

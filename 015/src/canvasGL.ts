@@ -134,12 +134,12 @@ export class CanvasGL {
     }
 
     private validShader(shader: WebGLShader) {
-        
-        if ( !this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS) ) {
-            const info = this.gl.getShaderInfoLog( shader );
+
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            const info = this.gl.getShaderInfoLog(shader);
             throw new Error("Could not compile WebGL program. \n\n" + info)
-          }
-          return shader;
+        }
+        return shader;
     }
 
     /**
@@ -178,7 +178,7 @@ export class CanvasGL {
         if (!this.#program) {
             throw new Error('No program')
         }
-        
+
         this.gl.attachShader(this.#program, vertexShader)
         this.gl.attachShader(this.#program, fragmentShader)
         this.gl.linkProgram(this.#program)
@@ -193,7 +193,7 @@ export class CanvasGL {
     }
 
     public createAttribute(name: string, size: number, type: number, normalize: boolean) {
-        
+
         const program = this.#program
         if (!program) {
             throw new Error('No program')
@@ -233,12 +233,12 @@ export class CanvasGL {
         if (!dataArray.length) {
             throw new Error('Empty data array')
         }
-        
+
         this.gl.bufferData(this.gl.ARRAY_BUFFER, dataArray, this.gl.STATIC_DRAW);
     }
 
     public createTexture() {
-        
+
         const texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 
@@ -251,18 +251,24 @@ export class CanvasGL {
         return texture;
     }
 
-    // public u_image() {
-        
-    //     const program = this.#program
-    //     if (!program) {
-    //         throw new Error('No program')
-    //     }
-    //     const uniformLocation = this.gl.getUniformLocation(program, "u_image")
-    //     this.gl.uniform1i(uniformLocation, 0);
-    // }
-
-    public texImage2D(img: HTMLImageElement) {
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
+    public texImage2D(image: ImageWrap | HTMLImageElement) {
+        if (image instanceof ImageWrap) {
+            image = image.data
+        }
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+        const gl = this.gl
+        function isPowerOf2(value: number) {
+            return (value & (value - 1)) == 0;
+        }
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            // 是 2 的幂，一般用贴图
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            // 不是 2 的幂，关闭贴图并设置包裹模式为到边缘
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
     }
 
     static degToRad(d: number) {

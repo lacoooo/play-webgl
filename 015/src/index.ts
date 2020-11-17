@@ -1,4 +1,4 @@
-import { CanvasGL } from './canvasGL'
+import { CanvasGL, ImageWrap } from './canvasGL'
 import * as dat from 'dat.gui';
 import * as mt from 'gl-matrix';
 const gui = new dat.GUI();
@@ -79,12 +79,16 @@ let u_worldViewProjection: WebGLUniformLocation | null
 let u_reverseLightDirection: WebGLUniformLocation | null
 let u_worldInverseTranspose: WebGLUniformLocation | null
 
+let texture: WebGLTexture | null
+let img: ImageWrap
+
 const c = new CanvasGL({
     init: {
         canvasId: 'webgl'
     },
     preload: (saveShader) => {
         saveShader(c.loadShader('./vert.glsl'), c.loadShader('./frag.glsl'))
+        img = c.loadImage('./f-texture.png')
     },
     setup: (program) => {
         if (!program) return
@@ -485,52 +489,52 @@ const c = new CanvasGL({
 
         c.bufferData(new Float32Array([
             // left column front
-            0, 0,
-            0, 1,
-            1, 0,
-            0, 1,
-            1, 1,
-            1, 0,
+             38 / 255,  44 / 255,
+             38 / 255, 223 / 255,
+            113 / 255,  44 / 255,
+             38 / 255, 223 / 255,
+            113 / 255, 223 / 255,
+            113 / 255,  44 / 255,
     
             // top rung front
-            0, 0,
-            0, 1,
-            1, 0,
-            0, 1,
-            1, 1,
-            1, 0,
+            113 / 255, 44 / 255,
+            113 / 255, 85 / 255,
+            218 / 255, 44 / 255,
+            113 / 255, 85 / 255,
+            218 / 255, 85 / 255,
+            218 / 255, 44 / 255,
     
             // middle rung front
-            0, 0,
-            0, 1,
-            1, 0,
-            0, 1,
-            1, 1,
-            1, 0,
+            113 / 255, 112 / 255,
+            113 / 255, 151 / 255,
+            203 / 255, 112 / 255,
+            113 / 255, 151 / 255,
+            203 / 255, 151 / 255,
+            203 / 255, 112 / 255,
     
             // left column back
-            0, 0,
-            1, 0,
-            0, 1,
-            0, 1,
-            1, 0,
-            1, 1,
+             38 / 255,  44 / 255,
+            113 / 255,  44 / 255,
+             38 / 255, 223 / 255,
+             38 / 255, 223 / 255,
+            113 / 255,  44 / 255,
+            113 / 255, 223 / 255,
     
             // top rung back
-            0, 0,
-            1, 0,
-            0, 1,
-            0, 1,
-            1, 0,
-            1, 1,
+            113 / 255, 44 / 255,
+            218 / 255, 44 / 255,
+            113 / 255, 85 / 255,
+            113 / 255, 85 / 255,
+            218 / 255, 44 / 255,
+            218 / 255, 85 / 255,
     
             // middle rung back
-            0, 0,
-            1, 0,
-            0, 1,
-            0, 1,
-            1, 0,
-            1, 1,
+            113 / 255, 112 / 255,
+            203 / 255, 112 / 255,
+            113 / 255, 151 / 255,
+            113 / 255, 151 / 255,
+            203 / 255, 112 / 255,
+            203 / 255, 151 / 255,
     
             // top
             0, 0,
@@ -610,7 +614,10 @@ const c = new CanvasGL({
             1, 1,
             0, 0,
             1, 1,
-            1, 0]))
+            1, 0,]))
+
+        c.createTexture()
+        c.texImage2D(img)
 
         u_worldViewProjection = c.gl.getUniformLocation(program, "u_worldViewProjection");
         u_reverseLightDirection = c.gl.getUniformLocation(program, "u_reverseLightDirection");
